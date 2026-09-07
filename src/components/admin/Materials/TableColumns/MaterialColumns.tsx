@@ -23,6 +23,7 @@ const statusStyles: Record<string, string> = {
 };
 
 export type MaterialFilterableField =
+  | "code"
   | "material"
   | "materialDescription"
   | "defaultSupplierRefCode"
@@ -251,6 +252,14 @@ export const GetMaterialColumns = ({
   });
 
   return [
+    {
+      header: "Code",
+      accessorKey: "code",
+      filterLabel: columnFilter("code" as MaterialFilterableField),
+      cell: (_value, row) => (
+        <span className="font-medium text-secondary-dark">{row.code}</span>
+      ),
+    },
     {
       header: "Material",
       accessorKey: "material",

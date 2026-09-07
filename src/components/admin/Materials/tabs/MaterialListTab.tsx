@@ -22,6 +22,7 @@ import {
 } from "../types";
 
 const SEARCH_FIELDS: (keyof IMaterial)[] = [
+  "code",
   "material",
   "materialDescription",
   "materialType",
@@ -34,7 +35,7 @@ const SEARCH_FIELDS: (keyof IMaterial)[] = [
 ];
 
 export default function MaterialListTab() {
-  const { materials, addMaterial, updateMaterial, deleteMaterial } =
+  const { materials, addMaterial, updateMaterial, deleteMaterial, getNextCode } =
     useMaterials();
   const { classes, subClasses, getClassOptions, getSubClassOptions } =
     useMaterialTaxonomy();
@@ -67,6 +68,7 @@ export default function MaterialListTab() {
         new Set(materials.map((m) => String(m[field])).filter(Boolean))
       ).sort();
     return {
+      code: unique("code"),
       material: unique("material"),
       materialDescription: unique("materialDescription"),
       defaultSupplierRefCode: unique("defaultSupplierRefCode"),
@@ -219,6 +221,7 @@ export default function MaterialListTab() {
         initial={editing}
         getClassOptions={classNameOptions}
         getSubClassOptions={subClassNameOptions}
+        getNextCode={getNextCode}
         onClose={() => {
           setIsModalOpen(false);
           setEditing(null);

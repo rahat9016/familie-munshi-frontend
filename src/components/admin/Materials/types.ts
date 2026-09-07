@@ -1,5 +1,7 @@
 export interface IMaterial {
   id: string;
+  /** Auto-generated on create from Material Type, e.g. "ADD-ONS-0001". Read-only. */
+  code: string;
   /** Leaf material name — the row's identity. */
   material: string;
   image: string;

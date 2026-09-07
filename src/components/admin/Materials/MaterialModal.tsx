@@ -1,10 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useMemo } from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
+import { ControlledCheckField } from "@/src/components/shared/FromController/ControlledCheckField";
+import ControlledInputField from "@/src/components/shared/FromController/ControlledInputField";
+import ControlledSearchableSelectField from "@/src/components/shared/FromController/ControlledSearchableSelectField";
+import ControlledTextareaField from "@/src/components/shared/FromController/ControlledTextareaField";
 import InputLabel from "@/src/components/shared/InputLabel";
+import SubmitButton from "@/src/components/shared/SubmitButton";
 import { Button } from "@/src/components/ui/button";
-import { Checkbox } from "@/src/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -13,9 +18,8 @@ import {
   DialogTitle,
 } from "@/src/components/ui/dialog";
 import { Input } from "@/src/components/ui/input";
-import { Textarea } from "@/src/components/ui/textarea";
-import SearchableSelect from "./SearchableSelect";
 import { MATERIAL_TYPES } from "./data/materialHierarchy";
+import { materialSchema } from "./Schema/materialSchema";
 import { IMaterial, MaterialFormValues } from "./types";
 
 const emptyValues: MaterialFormValues = {
@@ -34,6 +38,8 @@ interface MaterialModalProps {
   /** Class / sub class names come from the live taxonomy, not a static map. */
   getClassOptions: (materialType: string) => string[];
   getSubClassOptions: (materialType: string, materialClass: string) => string[];
+  /** Code the new material would receive for the currently selected type, e.g. "ADD-ONS-0001". */
+  getNextCode: (materialType: string) => string;
   onSubmit: (values: MaterialFormValues) => void;
 }
 
@@ -43,12 +49,15 @@ export default function MaterialModal({
   initial,
   getClassOptions,
   getSubClassOptions,
+  getNextCode,
   onSubmit,
 }: MaterialModalProps) {
-  // Remounted by the caller on every open (see its `key`), so the initial
-  // state is always in sync with `initial` — no effect needed.
-  const [values, setValues] = useState<MaterialFormValues>(() =>
-    initial
+  // Remounted by the caller on every open (see its `key`), so the default
+  // values are always in sync with `initial` — no reset effect needed.
+  const methods = useForm<MaterialFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: yupResolver(materialSchema) as any,
+    defaultValues: initial
       ? {
           material: initial.material,
           materialType: initial.materialType,
@@ -57,47 +66,23 @@ export default function MaterialModal({
           materialDescription: initial.materialDescription,
           isSustainable: initial.isSustainable,
         }
-      : emptyValues
-  );
+      : emptyValues,
+  });
+
+  const { control, handleSubmit, setValue } = methods;
+  const materialType = useWatch({ control, name: "materialType" });
+  const materialClass = useWatch({ control, name: "materialClass" });
 
   const classOptions = useMemo(
-    () => getClassOptions(values.materialType),
-    [getClassOptions, values.materialType]
+    () => getClassOptions(materialType),
+    [getClassOptions, materialType]
   );
   const subClassOptions = useMemo(
-    () => getSubClassOptions(values.materialType, values.materialClass),
-    [getSubClassOptions, values.materialType, values.materialClass]
+    () => getSubClassOptions(materialType, materialClass),
+    [getSubClassOptions, materialType, materialClass]
   );
 
-  // Changing a parent invalidates everything below it in the hierarchy.
-  const handleTypeChange = (materialType: string) =>
-    setValues((prev) => ({
-      ...prev,
-      materialType,
-      materialClass: "",
-      materialSubClass: "",
-    }));
-
-  const handleClassChange = (materialClass: string) =>
-    setValues((prev) => ({ ...prev, materialClass, materialSubClass: "" }));
-
-  const handleSubmit = () => {
-    if (!values.materialType) {
-      toast.error("Material Type is required");
-      return;
-    }
-    if (!values.materialClass) {
-      toast.error("Material Class is required");
-      return;
-    }
-    if (!values.materialSubClass) {
-      toast.error("Material Sub Class is required");
-      return;
-    }
-    if (!values.material.trim()) {
-      toast.error("Material is required");
-      return;
-    }
+  const submit = (values: MaterialFormValues) => {
     onSubmit({
       ...values,
       material: values.material.trim(),
@@ -114,102 +99,92 @@ export default function MaterialModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div>
-            <InputLabel label="Material Type" required />
-            <SearchableSelect
-              value={values.materialType}
-              options={MATERIAL_TYPES}
-              onChange={handleTypeChange}
-              placeholder="Select Material Type"
-              searchPlaceholder="Search material type..."
-            />
-          </div>
+        <FormProvider {...methods}>
+          <form onSubmit={handleSubmit(submit)} className="space-y-4">
+            <div>
+              <InputLabel label="Code" />
+              <Input
+                value={initial ? initial.code : getNextCode(materialType)}
+                disabled
+                placeholder="Select Material Type to generate"
+                className="h-11 bg-light text-secondary-gary"
+              />
+            </div>
 
-          <div>
-            <InputLabel label="Material Class" required />
-            <SearchableSelect
-              value={values.materialClass}
-              options={classOptions}
-              onChange={handleClassChange}
-              disabled={!values.materialType}
-              placeholder="Select Material Class"
-              searchPlaceholder="Search material class..."
-            />
-          </div>
+            <div>
+              <InputLabel label="Material Type" required />
+              <ControlledSearchableSelectField
+                name="materialType"
+                options={MATERIAL_TYPES}
+                placeholder="Select Material Type"
+                searchPlaceholder="Search material type..."
+                // Changing a parent invalidates everything below it.
+                onChanged={() => {
+                  setValue("materialClass", "");
+                  setValue("materialSubClass", "");
+                }}
+              />
+            </div>
 
-          <div>
-            <InputLabel label="Material Sub Class" required />
-            <SearchableSelect
-              value={values.materialSubClass}
-              options={subClassOptions}
-              onChange={(materialSubClass) =>
-                setValues((prev) => ({ ...prev, materialSubClass }))
-              }
-              disabled={!values.materialClass}
-              placeholder="Select Material Sub Class"
-              searchPlaceholder="Search material sub class..."
-            />
-          </div>
+            <div>
+              <InputLabel label="Material Class" required />
+              <ControlledSearchableSelectField
+                name="materialClass"
+                options={classOptions}
+                disabled={!materialType}
+                placeholder="Select Material Class"
+                searchPlaceholder="Search material class..."
+                onChanged={() => setValue("materialSubClass", "")}
+              />
+            </div>
 
-          <div>
-            <InputLabel label="Material" required />
-            <Input
-              value={values.material}
-              onChange={(e) =>
-                setValues((prev) => ({ ...prev, material: e.target.value }))
-              }
-              placeholder="e.g. 100% Cotton Poplin 120gsm"
-              className="h-11"
-            />
-          </div>
+            <div>
+              <InputLabel label="Material Sub Class" required />
+              <ControlledSearchableSelectField
+                name="materialSubClass"
+                options={subClassOptions}
+                disabled={!materialClass}
+                placeholder="Select Material Sub Class"
+                searchPlaceholder="Search material sub class..."
+              />
+            </div>
 
-          <div>
-            <InputLabel label="Material Description" />
-            <Textarea
-              value={values.materialDescription}
-              onChange={(e) =>
-                setValues((prev) => ({
-                  ...prev,
-                  materialDescription: e.target.value,
-                }))
-              }
-              placeholder="Short description"
-              rows={3}
-            />
-          </div>
+            <div>
+              <InputLabel label="Material" required />
+              <ControlledInputField
+                name="material"
+                placeholder="e.g. 100% Cotton Poplin 120gsm"
+                className="h-11"
+              />
+            </div>
 
-          <label className="flex items-center gap-2 cursor-pointer w-fit">
-            <Checkbox
-              checked={values.isSustainable}
-              onCheckedChange={(checked) =>
-                setValues((prev) => ({
-                  ...prev,
-                  isSustainable: checked === true,
-                }))
-              }
-            />
-            <span className="text-sm font-medium text-secondary-dark">
-              Sustainable
-            </span>
-          </label>
-        </div>
+            <div>
+              <InputLabel label="Material Description" />
+              <ControlledTextareaField
+                name="materialDescription"
+                placeholder="Short description"
+                className="h-20"
+              />
+            </div>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="h-11 border-light-dark"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            className="h-11 bg-primary text-white hover:bg-primary/90"
-          >
-            {initial ? "Update" : "Create"}
-          </Button>
-        </DialogFooter>
+            <ControlledCheckField name="isSustainable" label="Sustainable" />
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="h-11 border-light-dark"
+              >
+                Cancel
+              </Button>
+              <SubmitButton
+                label={initial ? "Update" : "Create"}
+                className="h-11"
+              />
+            </DialogFooter>
+          </form>
+        </FormProvider>
       </DialogContent>
     </Dialog>
   );

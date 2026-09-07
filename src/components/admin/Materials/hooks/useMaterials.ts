@@ -13,6 +13,25 @@ const generateId = () =>
 
 const SEED_DATE = "2024-01-01T00:00:00.000Z";
 
+/** e.g. "Add-Ons" -> "ADD-ONS" */
+const codePrefix = (materialType: string) =>
+  materialType.toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+/** Next sequential code for a type, e.g. "ADD-ONS-0001", based on the
+ *  highest existing suffix so deleting rows never reuses a number. */
+const generateMaterialCode = (
+  existing: Pick<IMaterial, "code" | "materialType">[],
+  materialType: string
+) => {
+  const prefix = codePrefix(materialType);
+  const pattern = new RegExp(`^${prefix}-(\\d+)$`);
+  const maxNumber = existing.reduce((max, item) => {
+    const match = pattern.exec(item.code);
+    return match ? Math.max(max, Number(match[1])) : max;
+  }, 0);
+  return `${prefix}-${String(maxNumber + 1).padStart(4, "0")}`;
+};
+
 /** Everything the table shows but the create modal does not ask for. */
 const blankDetails = {
   image: "",
@@ -30,7 +49,7 @@ const blankDetails = {
 };
 
 const getDefaultMaterials = (): IMaterial[] => {
-  const seeds: Omit<IMaterial, "id">[] = [
+  const seeds: Omit<IMaterial, "id" | "code">[] = [
     {
       ...blankDetails,
       material: "100% Cotton Poplin 120gsm",
@@ -114,13 +133,19 @@ const getDefaultMaterials = (): IMaterial[] => {
     },
   ];
 
-  return seeds.map((seed) => ({ ...seed, id: generateId() }));
+  const withCodes: IMaterial[] = [];
+  seeds.forEach((seed) => {
+    const code = generateMaterialCode(withCodes, seed.materialType);
+    withCodes.push({ ...seed, code, id: generateId() });
+  });
+  return withCodes;
 };
 
 /** Rows saved before a column existed come back without it — backfill so the
  *  inline inputs stay controlled. */
 const normalize = (item: Partial<IMaterial>): IMaterial => ({
   ...blankDetails,
+  code: "",
   material: "",
   materialType: "",
   materialClass: "",
@@ -132,12 +157,29 @@ const normalize = (item: Partial<IMaterial>): IMaterial => ({
   id: item.id ?? generateId(),
 });
 
+/** Rows saved before `code` existed come back with code "" — assign them one
+ *  in place so every row keeps a stable, unique code going forward. */
+const backfillCodes = (items: IMaterial[]): IMaterial[] => {
+  const withCodes: IMaterial[] = [];
+  items.forEach((item) => {
+    if (item.code) {
+      withCodes.push(item);
+    } else {
+      withCodes.push({
+        ...item,
+        code: generateMaterialCode(withCodes, item.materialType),
+      });
+    }
+  });
+  return withCodes;
+};
+
 const loadMaterials = (): IMaterial[] => {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
       const parsed = JSON.parse(saved) as Partial<IMaterial>[];
-      if (Array.isArray(parsed)) return parsed.map(normalize);
+      if (Array.isArray(parsed)) return backfillCodes(parsed.map(normalize));
     } catch {
       // ignore corrupted data
     }
@@ -171,6 +213,7 @@ export function useMaterials() {
     const item: IMaterial = {
       ...blankDetails,
       ...values,
+      code: generateMaterialCode(materials, values.materialType),
       id: generateId(),
       createdAt: new Date().toISOString(),
     };
@@ -189,5 +232,15 @@ export function useMaterials() {
     setMaterials((prev) => prev.filter((m) => m.id !== id));
   };
 
-  return { materials, addMaterial, updateMaterial, deleteMaterial };
+  /** Code the next material of this type would receive — for the create modal preview. */
+  const getNextCode = (materialType: string) =>
+    materialType ? generateMaterialCode(materials, materialType) : "";
+
+  return {
+    materials,
+    addMaterial,
+    updateMaterial,
+    deleteMaterial,
+    getNextCode,
+  };
 }

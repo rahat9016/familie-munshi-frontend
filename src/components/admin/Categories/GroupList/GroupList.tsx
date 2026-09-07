@@ -4,6 +4,7 @@ import DeleteConfirmDialog from "@/src/components/shared/DeleteConfirmDialog";
 import { useSearchDebounce } from "@/src/hooks/useSearchDebounce";
 import { useAppSelector } from "@/src/lib/redux/hooks";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import CategoriesTable from "../CategoriesTable";
 import { IGroup, mockGroupsList } from "../data/mockGroupData";
 import CreateUpdateGroup from "../Form/CreateUpdateGroup";
@@ -47,6 +48,7 @@ export default function GroupList() {
           item.id === selectedItem.id ? { ...item, ...values } : item
         )
       );
+      toast.success(`Group "${values.name}" updated`);
     } else {
       const id = values.name.toLowerCase().trim().replace(/\s+/g, "-");
       setGroups((prev) => [
@@ -59,6 +61,7 @@ export default function GroupList() {
           createdAt: new Date().toISOString(),
         },
       ]);
+      toast.success(`Group "${values.name}" created`);
     }
     handleModalClose();
   };

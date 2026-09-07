@@ -5,6 +5,7 @@ import { usePagination } from "@/src/hooks/usePagination";
 import { useSearchDebounce } from "@/src/hooks/useSearchDebounce";
 import { useAppSelector } from "@/src/lib/redux/hooks";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import CategoriesTable from "../CategoriesTable";
 import { mockParentCategoriesList } from "../data/mockCategoryHierarchy";
 import CreateUpdateParentCategory, {
@@ -84,12 +85,14 @@ export default function ParentCategoryList() {
           item.id === selectedItem.id ? { ...item, ...values } : item
         )
       );
+      toast.success(`Parent Category "${values.name}" updated`);
     } else {
       const id = values.name.toLowerCase().trim().replace(/\s+/g, "-");
       setParentCategories((prev) => [
         ...prev,
         { id, createdAt: new Date().toISOString(), ...values },
       ]);
+      toast.success(`Parent Category "${values.name}" created`);
     }
     handleModalClose();
   };

@@ -5,6 +5,7 @@ import { usePagination } from "@/src/hooks/usePagination";
 import { useSearchDebounce } from "@/src/hooks/useSearchDebounce";
 import { useAppSelector } from "@/src/lib/redux/hooks";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import CategoriesTable from "../CategoriesTable";
 import { mockCategoriesList } from "../data/mockCategoryHierarchy";
 import CreateUpdateCategory, {
@@ -80,12 +81,14 @@ export default function CategoryList() {
           item.id === selectedItem.id ? { ...item, ...values } : item
         )
       );
+      toast.success(`Category "${values.name}" updated`);
     } else {
       const id = values.name.toLowerCase().trim().replace(/\s+/g, "-");
       setCategories((prev) => [
         ...prev,
         { id, createdAt: new Date().toISOString(), ...values },
       ]);
+      toast.success(`Category "${values.name}" created`);
     }
     handleModalClose();
   };

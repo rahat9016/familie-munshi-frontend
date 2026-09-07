@@ -140,6 +140,7 @@ export default function MaterialSubClassTab() {
       />
 
       <MaterialSubClassModal
+        key={`${isModalOpen}-${editing?.id ?? "create"}`}
         isOpen={isModalOpen}
         initial={editing}
         classes={classes}

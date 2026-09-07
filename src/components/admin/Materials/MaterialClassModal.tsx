@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { FormProvider, useForm } from "react-hook-form";
+import ControlledInputField from "@/src/components/shared/FromController/ControlledInputField";
+import ControlledSearchableSelectField from "@/src/components/shared/FromController/ControlledSearchableSelectField";
 import InputLabel from "@/src/components/shared/InputLabel";
+import SubmitButton from "@/src/components/shared/SubmitButton";
 import { Button } from "@/src/components/ui/button";
 import {
   Dialog,
@@ -11,9 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/src/components/ui/dialog";
-import { Input } from "@/src/components/ui/input";
 import { MATERIAL_TYPES } from "./data/materialHierarchy";
-import SearchableSelect from "./SearchableSelect";
+import { materialClassSchema } from "./Schema/materialSchema";
 import { IMaterialClass, MaterialClassFormValues } from "./types";
 
 const emptyValues: MaterialClassFormValues = {
@@ -34,29 +36,19 @@ export default function MaterialClassModal({
   initial,
   onSubmit,
 }: MaterialClassModalProps) {
-  const [values, setValues] = useState<MaterialClassFormValues>(emptyValues);
+  // Remounted by the caller on every open (see its `key`), so the default
+  // values are always in sync with `initial` — no reset effect needed.
+  const methods = useForm<MaterialClassFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: yupResolver(materialClassSchema) as any,
+    defaultValues: initial
+      ? { materialType: initial.materialType, name: initial.name }
+      : emptyValues,
+  });
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setValues(
-      initial
-        ? {
-            materialType: initial.materialType,
-            name: initial.name,
-          }
-        : emptyValues
-    );
-  }, [isOpen, initial]);
+  const { handleSubmit } = methods;
 
-  const handleSubmit = () => {
-    if (!values.materialType) {
-      toast.error("Material Type is required");
-      return;
-    }
-    if (!values.name.trim()) {
-      toast.error("Material Class name is required");
-      return;
-    }
+  const submit = (values: MaterialClassFormValues) => {
     onSubmit({ ...values, name: values.name.trim() });
   };
 
@@ -69,48 +61,43 @@ export default function MaterialClassModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div>
-            <InputLabel label="Material Type" required />
-            <SearchableSelect
-              value={values.materialType}
-              options={MATERIAL_TYPES}
-              onChange={(materialType) =>
-                setValues((prev) => ({ ...prev, materialType }))
-              }
-              placeholder="Select Material Type"
-              searchPlaceholder="Search material type..."
-            />
-          </div>
+        <FormProvider {...methods}>
+          <form onSubmit={handleSubmit(submit)} className="space-y-4">
+            <div>
+              <InputLabel label="Material Type" required />
+              <ControlledSearchableSelectField
+                name="materialType"
+                options={MATERIAL_TYPES}
+                placeholder="Select Material Type"
+                searchPlaceholder="Search material type..."
+              />
+            </div>
 
-          <div>
-            <InputLabel label="Material Class" required />
-            <Input
-              value={values.name}
-              onChange={(e) =>
-                setValues((prev) => ({ ...prev, name: e.target.value }))
-              }
-              placeholder="e.g. Woven"
-              className="h-11"
-            />
-          </div>
-        </div>
+            <div>
+              <InputLabel label="Material Class" required />
+              <ControlledInputField
+                name="name"
+                placeholder="e.g. Woven"
+                className="h-11"
+              />
+            </div>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="h-11 border-light-dark"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            className="h-11 bg-primary text-white hover:bg-primary/90"
-          >
-            {initial ? "Update" : "Create"}
-          </Button>
-        </DialogFooter>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="h-11 border-light-dark"
+              >
+                Cancel
+              </Button>
+              <SubmitButton
+                label={initial ? "Update" : "Create"}
+                className="h-11"
+              />
+            </DialogFooter>
+          </form>
+        </FormProvider>
       </DialogContent>
     </Dialog>
   );

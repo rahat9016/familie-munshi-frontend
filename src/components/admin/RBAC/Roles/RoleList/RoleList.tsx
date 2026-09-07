@@ -3,6 +3,7 @@
 import DeleteConfirmDialog from "@/src/components/shared/DeleteConfirmDialog";
 import { useSearchDebounce } from "@/src/hooks/useSearchDebounce";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import { mockRolesList } from "../data/mockRoleData";
 import CreateUpdateRole from "../Form/CreateUpdateRole";
 import RolesTable from "../RolesTable";
@@ -31,6 +32,7 @@ export default function RoleList() {
           item.id === selectedItem.id ? { ...item, name } : item
         )
       );
+      toast.success(`Role "${name}" updated`);
     } else {
       setRoles((prev) => [
         ...prev,
@@ -43,6 +45,7 @@ export default function RoleList() {
           createdAt: new Date().toISOString(),
         },
       ]);
+      toast.success(`Role "${name}" created`);
     }
     handleModalClose();
   };

@@ -4,6 +4,7 @@ import { ColumnDef, DataTable } from "@/src/components/ui/data-table";
 import { LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import { IDepartmentItem, mockDepartmentsList } from "../data/mockStyleData";
 import CreateUpdateDepartment from "../Form/CreateUpdateDepartment";
 import { DepartmentFormValues } from "../Schema/departmentSchema";
@@ -33,6 +34,7 @@ export default function DepartmentsTable({ seasonId }: DepartmentsTableProps) {
         categories: [],
       },
     ]);
+    toast.success(`Department "${values.department}" added`);
     handleModalClose();
   };
 

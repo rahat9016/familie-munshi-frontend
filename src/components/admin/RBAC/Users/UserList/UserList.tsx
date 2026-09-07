@@ -5,6 +5,7 @@ import { useSearchDebounce } from "@/src/hooks/useSearchDebounce";
 import { selectIsSuperAdmin } from "@/src/lib/redux/features/rbac/rbacSelectors";
 import { useAppSelector } from "@/src/lib/redux/hooks";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import { mockBranchesList } from "../../Branches/data/mockBranchData";
 import { mockRolesList } from "../../Roles/data/mockRoleData";
 import { mockRbacUsersList } from "../data/mockRbacUserData";
@@ -59,6 +60,7 @@ export default function UserList() {
           item.id === selectedItem.id ? { ...item, ...fields } : item
         )
       );
+      toast.success(`User "${values.firstName} ${values.lastName}" updated`);
     } else {
       setUsers((prev) => [
         ...prev,
@@ -71,6 +73,7 @@ export default function UserList() {
           createdAt: new Date().toISOString(),
         },
       ]);
+      toast.success(`User "${values.firstName} ${values.lastName}" created`);
     }
     handleModalClose();
   };

@@ -120,6 +120,7 @@ export default function MaterialClassTab() {
       />
 
       <MaterialClassModal
+        key={`${isModalOpen}-${editing?.id ?? "create"}`}
         isOpen={isModalOpen}
         initial={editing}
         onClose={() => {

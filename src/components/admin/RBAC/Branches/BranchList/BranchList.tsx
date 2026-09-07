@@ -4,6 +4,7 @@ import DeleteConfirmDialog from "@/src/components/shared/DeleteConfirmDialog";
 import { useSearchDebounce } from "@/src/hooks/useSearchDebounce";
 import { useAppSelector } from "@/src/lib/redux/hooks";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import BranchesTable from "../BranchesTable";
 import { mockBranchesList } from "../data/mockBranchData";
 import CreateUpdateBranch from "../Form/CreateUpdateBranch";
@@ -68,6 +69,7 @@ export default function BranchList() {
           item.id === selectedItem.id ? { ...item, ...fields } : item
         )
       );
+      toast.success(`Branch "${values.name}" updated`);
     } else {
       setBranches((prev) => [
         ...prev,
@@ -78,6 +80,7 @@ export default function BranchList() {
           createdAt: new Date().toISOString(),
         },
       ]);
+      toast.success(`Branch "${values.name}" created`);
     }
     handleModalClose();
   };

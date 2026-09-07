@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useMemo } from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
+import ControlledInputField from "@/src/components/shared/FromController/ControlledInputField";
+import ControlledSearchableSelectField from "@/src/components/shared/FromController/ControlledSearchableSelectField";
 import InputLabel from "@/src/components/shared/InputLabel";
+import SubmitButton from "@/src/components/shared/SubmitButton";
 import { Button } from "@/src/components/ui/button";
 import {
   Dialog,
@@ -11,14 +15,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/src/components/ui/dialog";
-import { Input } from "@/src/components/ui/input";
 import { MATERIAL_TYPES } from "./data/materialHierarchy";
-import SearchableSelect from "./SearchableSelect";
-import {
-  IMaterialClass,
-  IMaterialSubClass,
-  MaterialSubClassFormValues,
-} from "./types";
+import { materialSubClassSchema } from "./Schema/materialSchema";
+import { IMaterialClass, IMaterialSubClass, MaterialSubClassFormValues } from "./types";
+
+/** `materialType` is UI-only — it narrows the parent class list — while only
+ *  `classId` and `name` get persisted. */
+type SubClassFormValues = MaterialSubClassFormValues & { materialType: string };
+
+const emptyValues: SubClassFormValues = {
+  materialType: "",
+  classId: "",
+  name: "",
+};
 
 interface MaterialSubClassModalProps {
   isOpen: boolean;
@@ -35,37 +44,31 @@ export default function MaterialSubClassModal({
   classes,
   onSubmit,
 }: MaterialSubClassModalProps) {
-  // Material Type only narrows the parent class list — the sub class itself is
-  // stored against a parent class id, which is mandatory.
-  const [materialType, setMaterialType] = useState("");
-  const [classId, setClassId] = useState("");
-  const [name, setName] = useState("");
+  // Remounted by the caller on every open (see its `key`), so the default
+  // values are always in sync with `initial` — no reset effect needed.
+  const methods = useForm<SubClassFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: yupResolver(materialSubClassSchema) as any,
+    defaultValues: initial
+      ? {
+          materialType:
+            classes.find((c) => c.id === initial.classId)?.materialType ?? "",
+          classId: initial.classId,
+          name: initial.name,
+        }
+      : emptyValues,
+  });
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const parent = initial
-      ? classes.find((c) => c.id === initial.classId)
-      : undefined;
-    setMaterialType(parent?.materialType ?? "");
-    setClassId(initial?.classId ?? "");
-    setName(initial?.name ?? "");
-  }, [isOpen, initial, classes]);
+  const { control, handleSubmit, setValue } = methods;
+  const materialType = useWatch({ control, name: "materialType" });
 
   const parentOptions = useMemo(
     () => classes.filter((c) => c.materialType === materialType),
     [classes, materialType]
   );
 
-  const handleSubmit = () => {
-    if (!classId) {
-      toast.error("Parent Material Class is required");
-      return;
-    }
-    if (!name.trim()) {
-      toast.error("Material Sub Class name is required");
-      return;
-    }
-    onSubmit({ classId, name: name.trim() });
+  const submit = ({ materialType: _materialType, ...values }: SubClassFormValues) => {
+    onSubmit({ ...values, name: values.name.trim() });
   };
 
   return (
@@ -77,67 +80,63 @@ export default function MaterialSubClassModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div>
-            <InputLabel label="Material Type" required />
-            <SearchableSelect
-              value={materialType}
-              options={MATERIAL_TYPES}
-              onChange={(type) => {
-                setMaterialType(type);
-                setClassId("");
-              }}
-              placeholder="Select Material Type"
-              searchPlaceholder="Search material type..."
-            />
-          </div>
+        <FormProvider {...methods}>
+          <form onSubmit={handleSubmit(submit)} className="space-y-4">
+            <div>
+              <InputLabel label="Material Type" required />
+              <ControlledSearchableSelectField
+                name="materialType"
+                options={MATERIAL_TYPES}
+                placeholder="Select Material Type"
+                searchPlaceholder="Search material type..."
+                onChanged={() => setValue("classId", "")}
+              />
+            </div>
 
-          <div>
-            <InputLabel label="Parent Material Class" required />
-            <SearchableSelect
-              value={classId}
-              options={parentOptions.map((cls) => ({
-                value: cls.id,
-                label: cls.name,
-              }))}
-              onChange={setClassId}
-              disabled={!materialType}
-              placeholder={
-                materialType
-                  ? "Select Parent Class"
-                  : "Select a Material Type first"
-              }
-              searchPlaceholder="Search parent class..."
-              emptyMessage={`No class under ${materialType}. Create one first.`}
-            />
-          </div>
+            <div>
+              <InputLabel label="Parent Material Class" required />
+              <ControlledSearchableSelectField
+                name="classId"
+                options={parentOptions.map((cls) => ({
+                  value: cls.id,
+                  label: cls.name,
+                }))}
+                disabled={!materialType}
+                placeholder={
+                  materialType
+                    ? "Select Parent Class"
+                    : "Select a Material Type first"
+                }
+                searchPlaceholder="Search parent class..."
+                emptyMessage={`No class under ${materialType}. Create one first.`}
+              />
+            </div>
 
-          <div>
-            <InputLabel label="Material Sub Class" required />
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Cotton Woven"
-              className="h-11"
-            />
-          </div>
-        </div>
+            <div>
+              <InputLabel label="Material Sub Class" required />
+              <ControlledInputField
+                name="name"
+                placeholder="e.g. Cotton Woven"
+                className="h-11"
+              />
+            </div>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="h-11 border-light-dark"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            className="h-11 bg-primary text-white hover:bg-primary/90"
-          >
-            {initial ? "Update" : "Create"}
-          </Button>
-        </DialogFooter>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="h-11 border-light-dark"
+              >
+                Cancel
+              </Button>
+              <SubmitButton
+                label={initial ? "Update" : "Create"}
+                className="h-11"
+              />
+            </DialogFooter>
+          </form>
+        </FormProvider>
       </DialogContent>
     </Dialog>
   );

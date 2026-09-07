@@ -4,6 +4,7 @@ import DeleteConfirmDialog from "@/src/components/shared/DeleteConfirmDialog";
 import { useSearchDebounce } from "@/src/hooks/useSearchDebounce";
 import { useAppSelector } from "@/src/lib/redux/hooks";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import BrandsTable from "../BrandsTable";
 import { mockBrandsList } from "../data/mockBrandData";
 import CreateUpdateBrand from "../Form/CreateUpdateBrand";
@@ -63,6 +64,7 @@ export default function BrandList() {
             : item
         )
       );
+      toast.success(`Brand "${values.name}" updated`);
     } else {
       const id = values.name.toLowerCase().trim().replace(/\s+/g, "-");
       setBrands((prev) => [
@@ -76,6 +78,7 @@ export default function BrandList() {
           createdAt: new Date().toISOString(),
         },
       ]);
+      toast.success(`Brand "${values.name}" created`);
     }
     handleModalClose();
   };

@@ -5,6 +5,7 @@ import { DataTable } from "@/src/components/ui/data-table";
 import { useAppSelector } from "@/src/lib/redux/hooks";
 import { CalendarRange } from "lucide-react";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import { ISeasonItem, mockSeasonsList } from "../data/mockStyleData";
 import CreateUpdateSeason from "../Form/CreateUpdateSeason";
 import { seasonStatusOptions, SeasonFormValues } from "../Schema/seasonSchema";
@@ -51,6 +52,7 @@ export default function SeasonsTable() {
           item.id === selectedItem.id ? { ...item, ...values } : item
         )
       );
+      toast.success(`Season "${values.season}" updated`);
     } else {
       const id = values.season
         .toLowerCase()
@@ -60,6 +62,7 @@ export default function SeasonsTable() {
         ...prev,
         { id, season: values.season, numberOfStyles: 0, status: values.status },
       ]);
+      toast.success(`Season "${values.season}" created`);
     }
     handleModalClose();
   };

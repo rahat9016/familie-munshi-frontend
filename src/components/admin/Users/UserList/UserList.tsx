@@ -4,6 +4,7 @@ import DeleteConfirmDialog from "@/src/components/shared/DeleteConfirmDialog";
 import { useSearchDebounce } from "@/src/hooks/useSearchDebounce";
 import { useAppSelector } from "@/src/lib/redux/hooks";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import { mockUsersList } from "../data/mockUserData";
 import CreateUpdateUser from "../Form/CreateUpdateUser";
 import { UserFormValues } from "../Schema/userSchema";
@@ -107,6 +108,7 @@ export default function UserList() {
           : item
       )
     );
+    toast.success(`User "${values.firstName} ${values.lastName}" updated`);
     handleEditModalClose();
   };
 

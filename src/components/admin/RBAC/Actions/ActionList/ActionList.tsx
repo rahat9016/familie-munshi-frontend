@@ -3,6 +3,7 @@
 import DeleteConfirmDialog from "@/src/components/shared/DeleteConfirmDialog";
 import { useSearchDebounce } from "@/src/hooks/useSearchDebounce";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import ActionsTable from "../ActionsTable";
 import { mockActionsList } from "../data/mockActionData";
 import CreateUpdateAction from "../Form/CreateUpdateAction";
@@ -36,6 +37,7 @@ export default function ActionList() {
           item.id === selectedItem.id ? { ...item, label: values.label } : item
         )
       );
+      toast.success(`Action "${values.label}" updated`);
     } else {
       setActions((prev) => [
         ...prev,
@@ -47,6 +49,7 @@ export default function ActionList() {
           createdAt: new Date().toISOString(),
         },
       ]);
+      toast.success(`Action "${values.label}" created`);
     }
     handleModalClose();
   };

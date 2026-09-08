@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { IMaterial, MaterialFormValues } from "../types";
 
 const STORAGE_KEY = "materials";
@@ -188,8 +189,21 @@ const loadMaterials = (): IMaterial[] => {
 };
 
 const persistMaterials = (items: IMaterial[]) => {
-  if (typeof window !== "undefined") {
+  if (typeof window === "undefined") return;
+  try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    // Quota exceeded — retry without the (largest) image payloads so the rest
+    // of the edit is not silently lost.
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(items.map((item) => ({ ...item, image: "" })))
+      );
+      toast.error("Storage is full — material images were not saved.");
+    } catch {
+      toast.error("Storage is full — the latest changes were not saved.");
+    }
   }
 };
 

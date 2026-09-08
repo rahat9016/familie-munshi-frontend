@@ -1,5 +1,6 @@
 import { ImageIcon, Upload } from "lucide-react";
 import { useRef } from "react";
+import { toast } from "react-toastify";
 import { ColumnFilterSelect } from "@/src/components/admin/Styles/TableColumns/ColorwayColumns";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import { ColumnDef } from "@/src/components/ui/data-table";
@@ -10,6 +11,7 @@ import {
 } from "../data/materialOptions";
 import { IMaterial, MaterialFlag, MaterialTextField } from "../types";
 import TableRowActions from "./TableRowActions";
+import { fileToThumbnail } from "@/src/utils/imageThumbnail";
 
 const editableCellClass =
   "w-full min-w-28 bg-transparent border-none p-0 text-sm text-secondary-dark focus:outline-none focus:ring-0";
@@ -138,13 +140,15 @@ function ImageCell({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (file: File | undefined) => {
+  const handleFile = async (file: File | undefined) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") onUpload?.(row.id, reader.result);
-    };
-    reader.readAsDataURL(file);
+    try {
+      onUpload?.(row.id, await fileToThumbnail(file));
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not upload the image"
+      );
+    }
   };
 
   return (
@@ -172,7 +176,10 @@ function ImageCell({
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={(e) => handleFile(e.target.files?.[0])}
+        onChange={(e) => {
+          handleFile(e.target.files?.[0]);
+          e.target.value = "";
+        }}
       />
     </button>
   );

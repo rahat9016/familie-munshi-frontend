@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Palette } from "lucide-react";
 import { toast } from "react-toastify";
 import { DataTable } from "@/src/components/ui/data-table";
+import { prepareGalleryImage } from "@/src/utils/galleryImage";
 import { useAppDispatch, useAppSelector } from "@/src/lib/redux/hooks";
 import {
   ColorwayFlag,
@@ -87,8 +88,14 @@ export default function StyleColorWayPage() {
   const handleToggleFlag = (code: string, field: ColorwayFlag, value: boolean) => {
     dispatch(setColorwayFlag({ code, field, value }));
   };
-  const handleImageUpload = (code: string, image: string) => {
-    dispatch(setColorwayImage({ code, image }));
+  const handleImageUpload = async (code: string, file: File) => {
+    try {
+      dispatch(setColorwayImage({ code, image: await prepareGalleryImage(file) }));
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not upload the image"
+      );
+    }
   };
   const handleFieldChange = (code: string, field: ColorwayTextField, value: string) => {
     dispatch(setColorwayField({ code, field, value }));

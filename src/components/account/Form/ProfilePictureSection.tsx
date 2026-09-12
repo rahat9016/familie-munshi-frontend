@@ -1,3 +1,4 @@
+import { useImageDrop } from "@/src/hooks/useImageDrop";
 import { ProfilePictureSectionProps } from "@/src/types/account/account.types";
 import { Camera, User } from "lucide-react";
 import Image from "next/image";
@@ -10,8 +11,12 @@ export default function ProfilePictureSection({
   email,
   initialProfilePicture,
 }: ProfilePictureSectionProps) {
-  const { control, watch } = useFormContext<ProfileFormValues>();
+  const { control, setValue, watch } = useFormContext<ProfileFormValues>();
   const profilePicture = watch("profilePicture");
+
+  const { isDragging, dropHandlers } = useImageDrop((files) =>
+    setValue("profilePicture", files[0], { shouldDirty: true })
+  );
 
   const currentPreview =
     profilePicture instanceof File
@@ -24,7 +29,13 @@ export default function ProfilePictureSection({
     <div className="space-y-6">
       <div className="bg-white rounded-xl border border-light-silver p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row items-center gap-6">
-          <div className="relative group">
+          <div
+            {...dropHandlers}
+            className={`relative group rounded-full ${
+              isDragging ? "ring-4 ring-primary" : ""
+            }`}
+            title="Drop an image here to change the picture"
+          >
             {currentPreview ? (
               <Image
                 src={currentPreview}
@@ -40,7 +51,9 @@ export default function ProfilePictureSection({
             )}
             <label
               htmlFor="profilePictureFile"
-              className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              className={`absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition-opacity cursor-pointer group-hover:opacity-100 ${
+                isDragging ? "opacity-100" : "opacity-0"
+              }`}
             >
               <Camera size={28} className="text-white" />
             </label>
@@ -59,7 +72,7 @@ export default function ProfilePictureSection({
                   id="profilePictureFile"
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
-                  className="hidden"
+                  className="sr-only"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {

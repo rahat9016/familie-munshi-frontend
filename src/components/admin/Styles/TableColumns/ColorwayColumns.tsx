@@ -1,5 +1,6 @@
 import { Check, ChevronsUpDown, Upload } from "lucide-react";
-import { useRef, useState } from "react";
+import Link from "next/link";
+import { useId, useState } from "react";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import {
   Command,
@@ -11,6 +12,7 @@ import {
 } from "@/src/components/ui/command";
 import { ColumnDef } from "@/src/components/ui/data-table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/src/components/ui/popover";
+import { useImageDrop } from "@/src/hooks/useImageDrop";
 import { cn } from "@/src/lib/utils";
 import {
   ColorwayFlag,
@@ -86,44 +88,53 @@ function ImageCell({
   onUpload,
 }: {
   row: IColorway;
-  onUpload?: (code: string, image: string) => void;
+  onUpload?: (code: string, file: File) => void | Promise<void>;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  // A <label> opens the picker natively — see the note in MaterialColumns.
+  const inputId = useId();
 
-  const handleFile = (file: File | undefined) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        onUpload?.(row.code, reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
+  const handleFiles = async (files: File[]) => {
+    if (files[0]) await onUpload?.(row.code, files[0]);
   };
 
+  const { isDragging, dropHandlers } = useImageDrop(handleFiles);
+
   return (
-    <button
-      type="button"
-      onClick={() => inputRef.current?.click()}
-      className="group absolute inset-0 overflow-hidden cursor-pointer"
+    <label
+      htmlFor={inputId}
+      {...dropHandlers}
+      className={cn(
+        "group absolute inset-0 overflow-hidden cursor-pointer",
+        isDragging && "ring-2 ring-inset ring-primary"
+      )}
       style={!row.image ? { backgroundColor: row.colorHex || "#ffffff" } : undefined}
-      title="Upload image"
+      title="Upload image — or drop one here"
     >
       {row.image && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={row.image} alt={row.name} className="w-full h-full object-cover" />
       )}
-      <span className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-colors opacity-0 group-hover:opacity-100">
+      <span
+        className={cn(
+          "absolute inset-0 flex items-center justify-center transition-colors group-hover:bg-black/40 group-hover:opacity-100",
+          isDragging ? "bg-black/40 opacity-100" : "bg-black/0 opacity-0"
+        )}
+      >
         <Upload className="size-3.5 text-white" />
       </span>
       <input
-        ref={inputRef}
+        id={inputId}
         type="file"
         accept="image/*"
-        className="hidden"
-        onChange={(e) => handleFile(e.target.files?.[0])}
+        className="sr-only"
+        // Clearing `value` drops the FileList, so it waits for the read.
+        onChange={async (e) => {
+          const input = e.currentTarget;
+          await handleFiles(Array.from(input.files ?? []));
+          input.value = "";
+        }}
       />
-    </button>
+    </label>
   );
 }
 
@@ -237,7 +248,7 @@ export type ColorwayFilterableField =
 
 export const GetColorwayColumns = (
   onToggle?: (code: string, field: ColorwayFlag, value: boolean) => void,
-  onImageUpload?: (code: string, image: string) => void,
+  onImageUpload?: (code: string, file: File) => void | Promise<void>,
   onFieldChange?: (code: string, field: ColorwayTextField, value: string) => void,
   filterOptions: Partial<Record<ColorwayFilterableField, string[]>> = {},
   columnFilters: Partial<Record<ColorwayFilterableField, string[]>> = {},
@@ -256,6 +267,19 @@ export const GetColorwayColumns = (
   );
 
   return [
+    {
+      header: "Code",
+      accessorKey: "code",
+      cell: (_value, row) => (
+        <Link
+          href={`/admin/styles/color-way/${row.code}`}
+          className="font-medium text-primary underline-offset-2 hover:underline"
+          title="Open colorway details"
+        >
+          {row.code}
+        </Link>
+      ),
+    },
     {
       header: (
         <>

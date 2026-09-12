@@ -12,7 +12,15 @@ import {
   BreadcrumbSeparator,
 } from "@/src/components/ui/breadcrumb";
 
-export default function DynamicBreadcrumb() {
+interface DynamicBreadcrumbProps {
+  /** Overrides the label of the last segment — detail routes carry an internal
+   *  id in the URL that means nothing to the reader. */
+  currentLabel?: string;
+}
+
+export default function DynamicBreadcrumb({
+  currentLabel,
+}: DynamicBreadcrumbProps = {}) {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
 
@@ -36,7 +44,8 @@ export default function DynamicBreadcrumb() {
           const showSeparator = !isAdminRoute || index !== 0;
           const isAdminSegment = segment === "admin";
 
-          const label = decodeURIComponent(segment);
+          const label =
+            isLast && currentLabel ? currentLabel : decodeURIComponent(segment);
 
           const className = `capitalize ${
             isAdminSegment ? "text-primary font-semibold" : ""

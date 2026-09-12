@@ -18,6 +18,7 @@ import {
   Tag,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
+import { useImageDrop } from "@/src/hooks/useImageDrop";
 import type {
   PosterTemplate,
   TemplateTextElement,
@@ -29,6 +30,31 @@ import TextControlPanel from "./TextControlPanel";
 interface DesignerCanvasProps {
   template: PosterTemplate;
   onBack: () => void;
+}
+
+/** One template image zone that also accepts a dropped image file. */
+function ImageZoneDropTarget({
+  onFile,
+  style,
+  children,
+}: {
+  onFile: (file: File) => void;
+  style: React.CSSProperties;
+  children: React.ReactNode;
+}) {
+  const { isDragging, dropHandlers } = useImageDrop((files) => onFile(files[0]));
+
+  return (
+    <div
+      {...dropHandlers}
+      className={`absolute overflow-hidden ${
+        isDragging ? "ring-2 ring-primary ring-inset" : ""
+      }`}
+      style={style}
+    >
+      {children}
+    </div>
+  );
 }
 
 export default function DesignerCanvas({
@@ -119,10 +145,8 @@ export default function DesignerCanvas({
   const [brandColor, setBrandColor] = useState("#000000");
   const [brandOpacity, setBrandOpacity] = useState(0.15);
 
-  const handleImageUpload = useCallback(
-    (zoneId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+  /** Shared by the file picker and by dropping an image on a zone. */
+  const applyImageFile = useCallback((zoneId: string, file: File) => {
       const url = URL.createObjectURL(file);
       setImageUploads((prev) => ({ ...prev, [zoneId]: url }));
       setOriginalFiles((prev) => ({ ...prev, [zoneId]: file }));
@@ -133,6 +157,15 @@ export default function DesignerCanvas({
       setImageFitModes((prev) => ({ ...prev, [zoneId]: "cover" }));
     },
     []
+  );
+
+  const handleImageUpload = useCallback(
+    (zoneId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) applyImageFile(zoneId, file);
+      e.target.value = "";
+    },
+    [applyImageFile]
   );
 
   const handleZoom = useCallback((zoneId: string, delta: number) => {
@@ -409,11 +442,11 @@ export default function DesignerCanvas({
               />
             ))}
 
-            {/* Image Zones */}
+            {/* Image Zones — each one accepts a dropped image. */}
             {template.imageZones.map((zone) => (
-              <div
+              <ImageZoneDropTarget
                 key={zone.id}
-                className="absolute overflow-hidden"
+                onFile={(file) => applyImageFile(zone.id, file)}
                 style={{
                   left: `${zone.x}%`,
                   top: `${zone.y}%`,
@@ -470,12 +503,12 @@ export default function DesignerCanvas({
                     <input
                       type="file"
                       accept="image/*"
-                      className="hidden"
+                      className="sr-only"
                       onChange={(e) => handleImageUpload(zone.id, e)}
                     />
                   </label>
                 )}
-              </div>
+              </ImageZoneDropTarget>
             ))}
 
             {/* Text Elements */}
@@ -680,7 +713,7 @@ export default function DesignerCanvas({
                       <input
                         type="file"
                         accept="image/*"
-                        className="hidden"
+                        className="sr-only"
                         onChange={(e) => handleImageUpload(selectedZoneId, e)}
                       />
                     </label>

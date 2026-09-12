@@ -1,6 +1,11 @@
 "use client";
 
 import { createSlice, nanoid, PayloadAction } from "@reduxjs/toolkit";
+import {
+  IGalleryImage,
+  normalizeGalleryImages,
+} from "@/src/utils/galleryImage";
+import { deleteImage } from "@/src/utils/imageStore";
 import { IColorway, IColorwayState } from "./colorwayTypes";
 
 const STORAGE_KEY = "colorways";
@@ -8,7 +13,10 @@ const STORAGE_KEY = "colorways";
 const generateCode = () => `CLR-${nanoid(6).toUpperCase()}`;
 
 const getDefaultItems = (): Record<string, IColorway> => {
-  const seeds: Omit<IColorway, "code" | "createdAt" | "articleIds">[] = [
+  const seeds: Omit<
+    IColorway,
+    "code" | "createdAt" | "articleIds" | "images"
+  >[] = [
     {
       name: "yellow",
       colorway: "1015",
@@ -126,6 +134,7 @@ const getDefaultItems = (): Record<string, IColorway> => {
         code: generateCode(),
         createdAt: new Date().toISOString(),
         articleIds: [],
+        images: [],
       };
       return [item.code, item];
     })
@@ -140,6 +149,7 @@ const getInitialState = (): IColorwayState => {
         const parsed: Record<string, IColorway> = JSON.parse(saved);
         Object.values(parsed).forEach((item) => {
           if (!item.articleIds) item.articleIds = [];
+          item.images = normalizeGalleryImages(item.images, item.image);
         });
         return { items: parsed };
       } catch {
@@ -166,6 +176,7 @@ export type ColorwayFlag =
 
 export type ColorwayTextField =
   | "name"
+  | "colorHex"
   | "colorway"
   | "spec"
   | "description"
@@ -184,12 +195,18 @@ const colorwaySlice = createSlice({
         state.items[action.payload.code] = action.payload;
         persistItems(state.items);
       },
-      prepare: (payload: Omit<IColorway, "code" | "createdAt" | "articleIds">) => ({
+      prepare: (
+        payload: Omit<
+          IColorway,
+          "code" | "createdAt" | "articleIds" | "images"
+        >
+      ) => ({
         payload: {
           ...payload,
           code: generateCode(),
           createdAt: new Date().toISOString(),
           articleIds: [],
+          images: [],
         },
       }),
     },
@@ -223,15 +240,55 @@ const colorwaySlice = createSlice({
         persistItems(state.items);
       }
     },
+    /** Replaces the thumbnail — what the list table's image cell does. */
     setColorwayImage: (
       state,
-      action: PayloadAction<{ code: string; image: string }>
+      action: PayloadAction<{ code: string; image: IGalleryImage }>
     ) => {
       const item = state.items[action.payload.code];
-      if (item) {
-        item.image = action.payload.image;
-        persistItems(state.items);
-      }
+      if (!item) return;
+      const [replaced, ...rest] = item.images;
+      if (replaced?.id) deleteImage(replaced.id);
+      item.images = [action.payload.image, ...rest];
+      item.image = action.payload.image.thumbnail;
+      persistItems(state.items);
+    },
+    /** Appends dropped/selected images; the first one stays the thumbnail. */
+    addColorwayImages: (
+      state,
+      action: PayloadAction<{ code: string; images: IGalleryImage[] }>
+    ) => {
+      const item = state.items[action.payload.code];
+      if (!item || action.payload.images.length === 0) return;
+      item.images = [...item.images, ...action.payload.images];
+      item.image = item.images[0].thumbnail;
+      persistItems(state.items);
+    },
+    removeColorwayImage: (
+      state,
+      action: PayloadAction<{ code: string; index: number }>
+    ) => {
+      const item = state.items[action.payload.code];
+      if (!item) return;
+      const removed = item.images[action.payload.index];
+      if (removed?.id) deleteImage(removed.id);
+      item.images = item.images.filter((_, i) => i !== action.payload.index);
+      item.image = item.images[0]?.thumbnail ?? "";
+      persistItems(state.items);
+    },
+    setPrimaryColorwayImage: (
+      state,
+      action: PayloadAction<{ code: string; index: number }>
+    ) => {
+      const item = state.items[action.payload.code];
+      const picked = item?.images[action.payload.index];
+      if (!item || !picked) return;
+      item.images = [
+        picked,
+        ...item.images.filter((_, i) => i !== action.payload.index),
+      ];
+      item.image = picked.thumbnail;
+      persistItems(state.items);
     },
     setColorwayField: (
       state,
@@ -250,6 +307,9 @@ export const {
   createColorway,
   setColorwayFlag,
   setColorwayImage,
+  addColorwayImages,
+  removeColorwayImage,
+  setPrimaryColorwayImage,
   setColorwayField,
   mapColorwayToArticle,
   unmapColorwayFromArticle,

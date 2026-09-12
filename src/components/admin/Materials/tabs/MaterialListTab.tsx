@@ -4,10 +4,12 @@ import { Layers } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { DataTable, DataTableGroup } from "@/src/components/ui/data-table";
+import { prepareGalleryImage } from "@/src/utils/galleryImage";
 import { MATERIAL_TYPES } from "../data/materialHierarchy";
 import { MATERIAL_STATUSES, YARN_COUNT_UNITS } from "../data/materialOptions";
 import { MATERIAL_TABS } from "../data/materialTabs";
 import { useMaterials } from "../hooks/useMaterials";
+
 import { useMaterialTaxonomy } from "../hooks/useMaterialTaxonomy";
 import MaterialModal from "../MaterialModal";
 import {
@@ -35,8 +37,14 @@ const SEARCH_FIELDS: (keyof IMaterial)[] = [
 ];
 
 export default function MaterialListTab() {
-  const { materials, addMaterial, updateMaterial, deleteMaterial, getNextCode } =
-    useMaterials();
+  const {
+    materials,
+    addMaterial,
+    updateMaterial,
+    deleteMaterial,
+    replacePrimaryImage,
+    getNextCode,
+  } = useMaterials();
   const { classes, subClasses, getClassOptions, getSubClassOptions } =
     useMaterialTaxonomy();
 
@@ -162,8 +170,18 @@ export default function MaterialListTab() {
         onTextChange: handleTextChange,
         onFlagToggle: (id: string, field: MaterialFlag, value: boolean) =>
           updateMaterial(id, { [field]: value }),
-        onImageUpload: (id: string, image: string) =>
-          updateMaterial(id, { image }),
+        // Keeps the gallery in sync — the cell edits the primary image only.
+        onImageUpload: async (id: string, file: File) => {
+          try {
+            replacePrimaryImage(id, await prepareGalleryImage(file));
+          } catch (error) {
+            toast.error(
+              error instanceof Error
+                ? error.message
+                : "Could not upload the image"
+            );
+          }
+        },
         getClassOptions: classNameOptions,
         getSubClassOptions: subClassNameOptions,
         filterOptions,
@@ -178,6 +196,7 @@ export default function MaterialListTab() {
       columnFilters,
       deleteMaterial,
       updateMaterial,
+      replacePrimaryImage,
     ]
   );
 

@@ -1,3 +1,5 @@
+import { IGalleryImage } from "@/src/utils/galleryImage";
+
 export interface IColorway {
   code: string;
   name: string;
@@ -7,7 +9,10 @@ export interface IColorway {
   standard: string;
   pantone: string;
   colorHex: string;
+  /** Primary thumbnail — always `images[0]`, kept flat for the list table. */
   image?: string;
+  /** Every image attached to the colorway; the detail page manages the set. */
+  images: IGalleryImage[];
   active: boolean;
   inTheme: boolean;
   sustLabelOff: boolean;

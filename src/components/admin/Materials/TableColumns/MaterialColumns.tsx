@@ -1,6 +1,6 @@
 import { ImageIcon, Upload } from "lucide-react";
-import { useRef } from "react";
-import { toast } from "react-toastify";
+import Link from "next/link";
+import { useId } from "react";
 import { ColumnFilterSelect } from "@/src/components/admin/Styles/TableColumns/ColorwayColumns";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import { ColumnDef } from "@/src/components/ui/data-table";
@@ -11,7 +11,7 @@ import {
 } from "../data/materialOptions";
 import { IMaterial, MaterialFlag, MaterialTextField } from "../types";
 import TableRowActions from "./TableRowActions";
-import { fileToThumbnail } from "@/src/utils/imageThumbnail";
+import { useImageDrop } from "@/src/hooks/useImageDrop";
 
 const editableCellClass =
   "w-full min-w-28 bg-transparent border-none p-0 text-sm text-secondary-dark focus:outline-none focus:ring-0";
@@ -136,27 +136,26 @@ function ImageCell({
   onUpload,
 }: {
   row: IMaterial;
-  onUpload?: (id: string, image: string) => void;
+  onUpload?: (id: string, file: File) => void | Promise<void>;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  // A <label> opens the picker natively — no JS .click() to bubble back into
+  // the surrounding element.
+  const inputId = useId();
 
-  const handleFile = async (file: File | undefined) => {
-    if (!file) return;
-    try {
-      onUpload?.(row.id, await fileToThumbnail(file));
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not upload the image"
-      );
-    }
+  const handleFiles = async (files: File[]) => {
+    if (files[0]) await onUpload?.(row.id, files[0]);
   };
 
+  const { isDragging, dropHandlers } = useImageDrop(handleFiles);
+
   return (
-    <button
-      type="button"
-      onClick={() => inputRef.current?.click()}
-      title={row.image ? "Replace image" : "Upload image"}
-      className="group absolute inset-0 flex items-center justify-center overflow-hidden bg-light cursor-pointer"
+    <label
+      htmlFor={inputId}
+      {...dropHandlers}
+      title={row.image ? "Replace image — or drop one here" : "Upload image"}
+      className={`group absolute inset-0 flex items-center justify-center overflow-hidden bg-light cursor-pointer ${
+        isDragging ? "ring-2 ring-inset ring-primary" : ""
+      }`}
     >
       {row.image ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -168,20 +167,26 @@ function ImageCell({
       ) : (
         <ImageIcon className="size-5 text-secondary-gary/70" />
       )}
-      <span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
+      <span
+        className={`absolute inset-0 flex items-center justify-center bg-black/45 transition-opacity group-hover:opacity-100 ${
+          isDragging ? "opacity-100" : "opacity-0"
+        }`}
+      >
         <Upload className="size-3.5 text-white" />
       </span>
       <input
-        ref={inputRef}
+        id={inputId}
         type="file"
         accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          handleFile(e.target.files?.[0]);
-          e.target.value = "";
+        className="sr-only"
+        // Clearing `value` drops the FileList, so it waits for the read.
+        onChange={async (e) => {
+          const input = e.currentTarget;
+          await handleFiles(Array.from(input.files ?? []));
+          input.value = "";
         }}
       />
-    </button>
+    </label>
   );
 }
 
@@ -190,7 +195,7 @@ export interface MaterialColumnsOptions {
   onDelete: (item: IMaterial) => void;
   onTextChange?: (id: string, field: MaterialTextField, value: string) => void;
   onFlagToggle?: (id: string, field: MaterialFlag, value: boolean) => void;
-  onImageUpload?: (id: string, image: string) => void;
+  onImageUpload?: (id: string, file: File) => void | Promise<void>;
   /** Cascading options for the inline Class / Sub Class selects. */
   getClassOptions: (materialType: string) => string[];
   getSubClassOptions: (materialType: string, materialClass: string) => string[];
@@ -264,7 +269,13 @@ export const GetMaterialColumns = ({
       accessorKey: "code",
       filterLabel: columnFilter("code" as MaterialFilterableField),
       cell: (_value, row) => (
-        <span className="font-medium text-secondary-dark">{row.code}</span>
+        <Link
+          href={`/admin/styles/material/${row.id}`}
+          className="font-medium text-primary underline-offset-2 hover:underline"
+          title="Open material details"
+        >
+          {row.code}
+        </Link>
       ),
     },
     {

@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { IMaterial, MaterialFormValues } from "../types";
+import { normalizeGalleryImages } from "@/src/utils/galleryImage";
+import { deleteImage } from "@/src/utils/imageStore";
+import {
+  IMaterial,
+  IMaterialDocument,
+  IMaterialImage,
+  MaterialFormValues,
+} from "../types";
 
 const STORAGE_KEY = "materials";
 
@@ -13,6 +20,9 @@ const generateId = () =>
     .toUpperCase()}`;
 
 const SEED_DATE = "2024-01-01T00:00:00.000Z";
+
+/** Stamped on every edit until a real auth session provides the user. */
+const EDITOR_NAME = "System";
 
 /** e.g. "Add-Ons" -> "ADD-ONS" */
 const codePrefix = (materialType: string) =>
@@ -33,9 +43,11 @@ const generateMaterialCode = (
   return `${prefix}-${String(maxNumber + 1).padStart(4, "0")}`;
 };
 
-/** Everything the table shows but the create modal does not ask for. */
-const blankDetails = {
+/** Everything the table shows but the create modal does not ask for.
+ *  A factory, not a constant, so every row gets its own `documents` array. */
+const createBlankDetails = () => ({
   image: "",
+  images: [] as IMaterialImage[],
   defaultSupplierRefCode: "",
   textComposition: "",
   structure: "",
@@ -47,12 +59,61 @@ const blankDetails = {
   materialStatus: "Draft",
   isActive: true,
   createdBy: "System",
-};
+  // Detail page fields — blank until edited on the material detail page.
+  composition: "",
+  releaseSeason: "",
+  sizeUnitOfMeasure: "",
+  sizes: "",
+  consumptionUnit: "",
+  totalWidth: "",
+  usableWidth: "",
+  widthUnit: "",
+  weightUnit: "",
+  defaultSize: "",
+  defaultColor: "",
+  libraries: "",
+  materialSecurityGroups: "",
+  modifiedAt: "",
+  modifiedBy: "",
+  owner: "",
+  specialComment: "",
+  destForDevelopment1: "",
+  destForDevelopment2: "",
+  destForDevelopment3: "",
+  defaultSupplier: "",
+  defaultAgent: "",
+  defaultSupplierQuote: "",
+  defaultLeadtimeSamples: "",
+  defaultLeadtimeBulk: "",
+  sampleMinimums: "",
+  garmentProd: "",
+  minimumQtyPerColor: "",
+  minimumQtyPerOrder: "",
+  consumptionPrice: "",
+  subDivision: "",
+  hasSeasonAvailability: false,
+  dataSheets: "",
+  recentConversations: "",
+  packagingRecyclingCode: "",
+  materialInterfaceTrigger: false,
+  construction: "",
+  design: "",
+  spinningType: "",
+  dyeingMethod: "",
+  dyeingStuff: "",
+  materialInformationStatus: "",
+  trademark: "",
+  sustainableComposition: "",
+  percentOrganic: "",
+  percentOthers: "",
+  percentRecycled: "",
+  documents: [] as IMaterialDocument[],
+});
 
 const getDefaultMaterials = (): IMaterial[] => {
   const seeds: Omit<IMaterial, "id" | "code">[] = [
     {
-      ...blankDetails,
+      ...createBlankDetails(),
       material: "100% Cotton Poplin 120gsm",
       materialType: "Fabric",
       materialClass: "Woven",
@@ -71,7 +132,7 @@ const getDefaultMaterials = (): IMaterial[] => {
       createdAt: SEED_DATE,
     },
     {
-      ...blankDetails,
+      ...createBlankDetails(),
       material: "Cotton Jersey 180gsm",
       materialType: "Fabric",
       materialClass: "Knit",
@@ -89,7 +150,7 @@ const getDefaultMaterials = (): IMaterial[] => {
       createdAt: SEED_DATE,
     },
     {
-      ...blankDetails,
+      ...createBlankDetails(),
       material: "25mm Woven Elastic",
       materialType: "Trims",
       materialClass: "Elastic",
@@ -104,7 +165,7 @@ const getDefaultMaterials = (): IMaterial[] => {
       createdAt: SEED_DATE,
     },
     {
-      ...blankDetails,
+      ...createBlankDetails(),
       material: "Brand Woven Main Label",
       materialType: "Labeling",
       materialClass: "Main Label",
@@ -117,7 +178,7 @@ const getDefaultMaterials = (): IMaterial[] => {
       createdAt: SEED_DATE,
     },
     {
-      ...blankDetails,
+      ...createBlankDetails(),
       material: "30s Combed Cotton Yarn",
       materialType: "Yarn",
       materialClass: "Cotton Yarn",
@@ -145,7 +206,7 @@ const getDefaultMaterials = (): IMaterial[] => {
 /** Rows saved before a column existed come back without it — backfill so the
  *  inline inputs stay controlled. */
 const normalize = (item: Partial<IMaterial>): IMaterial => ({
-  ...blankDetails,
+  ...createBlankDetails(),
   code: "",
   material: "",
   materialType: "",
@@ -156,6 +217,8 @@ const normalize = (item: Partial<IMaterial>): IMaterial => ({
   createdAt: SEED_DATE,
   ...item,
   id: item.id ?? generateId(),
+  documents: Array.isArray(item.documents) ? item.documents : [],
+  images: normalizeGalleryImages(item.images, item.image),
 });
 
 /** Rows saved before `code` existed come back with code "" — assign them one
@@ -198,7 +261,9 @@ const persistMaterials = (items: IMaterial[]) => {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify(items.map((item) => ({ ...item, image: "" })))
+        JSON.stringify(
+          items.map((item) => ({ ...item, image: "", images: [] }))
+        )
       );
       toast.error("Storage is full — material images were not saved.");
     } catch {
@@ -225,7 +290,7 @@ export function useMaterials() {
 
   const addMaterial = (values: MaterialFormValues) => {
     const item: IMaterial = {
-      ...blankDetails,
+      ...createBlankDetails(),
       ...values,
       code: generateMaterialCode(materials, values.materialType),
       id: generateId(),
@@ -235,12 +300,87 @@ export function useMaterials() {
     return item;
   };
 
-  /** Patch used by both the edit modal and every inline cell edit. */
-  const updateMaterial = (id: string, patch: Partial<IMaterial>) => {
+  /** Every mutation funnels through here so the modified audit fields are
+   *  always stamped, whatever changed. */
+  const patchMaterial = (
+    id: string,
+    updater: (material: IMaterial) => Partial<IMaterial>
+  ) => {
     setMaterials((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, ...patch } : m))
+      prev.map((m) =>
+        m.id === id
+          ? {
+              ...m,
+              ...updater(m),
+              modifiedAt: new Date().toISOString(),
+              modifiedBy: EDITOR_NAME,
+            }
+          : m
+      )
     );
   };
+
+  /** Patch used by the edit modal, every inline cell edit and the detail page. */
+  const updateMaterial = (id: string, patch: Partial<IMaterial>) =>
+    patchMaterial(id, () => patch);
+
+  /** Single material for the detail page — `undefined` while unknown. */
+  const getMaterial = (id: string) => materials.find((m) => m.id === id);
+
+  /** Append dropped/selected images; the first one becomes the thumbnail. */
+  const addImages = (id: string, images: IMaterialImage[]) => {
+    if (images.length === 0) return;
+    patchMaterial(id, (m) => {
+      const next = [...m.images, ...images];
+      return { images: next, image: next[0].thumbnail };
+    });
+  };
+
+  /** Replace the thumbnail — what the list table's image cell does. */
+  const replacePrimaryImage = (id: string, image: IMaterialImage) =>
+    patchMaterial(id, (m) => {
+      const [replaced, ...rest] = m.images;
+      if (replaced?.id) deleteImage(replaced.id);
+      return { images: [image, ...rest], image: image.thumbnail };
+    });
+
+  const removeImage = (id: string, index: number) =>
+    patchMaterial(id, (m) => {
+      const removed = m.images[index];
+      if (removed?.id) deleteImage(removed.id);
+      const next = m.images.filter((_, i) => i !== index);
+      return { images: next, image: next[0]?.thumbnail ?? "" };
+    });
+
+  /** Promote an image to the thumbnail slot. */
+  const setPrimaryImage = (id: string, index: number) =>
+    patchMaterial(id, (m) => {
+      const picked = m.images[index];
+      if (!picked) return {};
+      const next = [picked, ...m.images.filter((_, i) => i !== index)];
+      return { images: next, image: picked.thumbnail };
+    });
+
+  const addDocument = (
+    id: string,
+    file: Pick<IMaterialDocument, "name" | "type" | "size">
+  ) =>
+    patchMaterial(id, (m) => ({
+      documents: [
+        ...m.documents,
+        {
+          ...file,
+          id: generateId(),
+          addedAt: new Date().toISOString(),
+          addedBy: EDITOR_NAME,
+        },
+      ],
+    }));
+
+  const deleteDocument = (id: string, documentId: string) =>
+    patchMaterial(id, (m) => ({
+      documents: m.documents.filter((d) => d.id !== documentId),
+    }));
 
   const deleteMaterial = (id: string) => {
     setMaterials((prev) => prev.filter((m) => m.id !== id));
@@ -252,9 +392,17 @@ export function useMaterials() {
 
   return {
     materials,
+    hydrated,
     addMaterial,
     updateMaterial,
     deleteMaterial,
+    getMaterial,
+    addImages,
+    replacePrimaryImage,
+    removeImage,
+    setPrimaryImage,
+    addDocument,
+    deleteDocument,
     getNextCode,
   };
 }

@@ -7,6 +7,7 @@ import {
   mapNavigation,
   NavLink,
   navByGenderFallback,
+  NAVIGATION_API_ENABLED,
   NAVIGATION_ENDPOINT,
   type Gender,
 } from "./navLinks";
@@ -26,9 +27,12 @@ export interface NavigationData {
  * calling this from multiple components shares one request.
  */
 export function useNavigation(): NavigationData {
-  const { data, isLoading } = useGet<INavGroup[]>(NAVIGATION_ENDPOINT, [
-    "navigation",
-  ]);
+  const { data, isLoading } = useGet<INavGroup[]>(
+    NAVIGATION_ENDPOINT,
+    ["navigation"],
+    undefined,
+    { enabled: NAVIGATION_API_ENABLED }
+  );
 
   const groups = data?.data;
 

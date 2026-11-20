@@ -1,9 +1,10 @@
 import { getBaseUrl } from "@/src/config/envConfig";
-import { authKey } from "@/src/constants/auth/storageKey";
+import { authKey, refreshTokenKey } from "@/src/constants/auth/storageKey";
 import { getNewAccessToken, logout } from "@/src/services/auth.service";
 import { getCookies } from "@/src/utils/local-storage";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 
 const instance = axios.create({
@@ -17,45 +18,23 @@ const AUTH_ENDPOINTS = ["/auth/login", "/auth/signup", "/auth/refresh-token"];
 const isAuthEndpoint = (url?: string) =>
   !!url && AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint));
 
-// Request interceptor
-instance.interceptors.request.use(
-  function (config) {
-    // Handle local Next.js API routes — bypass external baseURL
-    if (config.url?.startsWith("/api/")) {
-      const origin =
-        typeof window !== "undefined"
-          ? window.location.origin
-          : "http://localhost:3000";
-      config.url = `${origin}${config.url}`;
-      config.baseURL = "";
-    }
+/** Refresh this many seconds before `exp` to absorb clock skew / latency. */
+const EXPIRY_SKEW_SECONDS = 30;
 
-    // <========
-    // If the request is a POST request and the data is not FormData,
-    // set Content-Type to application/json
-    // ========>
-    if (!(config.data instanceof FormData)) {
-      config.headers["Content-Type"] = "application/json";
-    } else {
-      // Let the browser set the correct multipart boundary
-      config.headers["Content-Type"] = "multipart/form-data";
-    }
-
-    // Skip adding Authorization header for public auth endpoints
-    if (!isAuthEndpoint(config.url)) {
-      const accessToken = getCookies(authKey);
-      if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
-      }
-    }
-    return config;
-  },
-  function (error) {
-    return Promise.reject(error);
+/** true when the JWT is missing, malformed, or expires within the skew. */
+function isTokenExpired(token?: string | null): boolean {
+  if (!token) return true;
+  try {
+    const { exp } = jwtDecode<{ exp?: number }>(token);
+    if (!exp) return false; // no expiry claim → treat as valid
+    return exp - EXPIRY_SKEW_SECONDS <= Math.floor(Date.now() / 1000);
+  } catch {
+    return true;
   }
-);
+}
 
-// Single in-flight refresh shared by all requests that hit 401 together.
+// Single in-flight refresh shared by every request that needs one, so a
+// burst of parallel calls triggers exactly one POST /auth/refresh-token.
 let refreshPromise: Promise<string> | null = null;
 
 function refreshAccessToken(): Promise<string> {
@@ -76,6 +55,64 @@ function refreshAccessToken(): Promise<string> {
   }
   return refreshPromise;
 }
+
+/**
+ * Valid access token for the next request:
+ *  - current token still valid        → use it
+ *  - expired/missing + refresh token  → refresh first, then use the new one
+ *  - no refresh token (guest)         → undefined (send without auth)
+ * Throws when the refresh itself fails (session is over).
+ */
+async function getValidAccessToken(): Promise<string | undefined> {
+  const accessToken = getCookies(authKey);
+  if (accessToken && !isTokenExpired(accessToken)) return accessToken;
+  if (!Cookies.get(refreshTokenKey)) return undefined;
+  return refreshAccessToken();
+}
+
+// Request interceptor
+instance.interceptors.request.use(
+  async function (config) {
+    // Handle local Next.js API routes — bypass external baseURL
+    if (config.url?.startsWith("/api/")) {
+      const origin =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : "http://localhost:3000";
+      config.url = `${origin}${config.url}`;
+      config.baseURL = "";
+    }
+
+    if (!(config.data instanceof FormData)) {
+      config.headers["Content-Type"] = "application/json";
+    } else {
+      // Let the browser set the correct multipart boundary
+      config.headers["Content-Type"] = "multipart/form-data";
+    }
+
+    // Public auth endpoints never carry a bearer token
+    if (isAuthEndpoint(config.url)) return config;
+
+    // Check token validity BEFORE sending; refresh first if expired.
+    try {
+      const accessToken = await getValidAccessToken();
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
+    } catch {
+      logout();
+      return Promise.reject({
+        statusCode: 401,
+        message: "Session expired. Please login again.",
+      });
+    }
+
+    return config;
+  },
+  function (error) {
+    return Promise.reject(error);
+  }
+);
 
 const toErrorObj = (error: {
   response?: {
@@ -106,31 +143,32 @@ instance.interceptors.response.use(
     const originalRequest = error.config;
     const status = error?.response?.status;
 
-    // 401 on a protected endpoint → refresh access token once, then retry.
+    // Fallback: token was revoked/rejected server-side despite a valid `exp`
+    // → force one refresh and retry. Guests (no refresh token) just get the
+    // error, no redirect.
+    const hasSession = !!Cookies.get(refreshTokenKey);
     if (
       status === 401 &&
+      hasSession &&
       originalRequest &&
+      !originalRequest._retry &&
       !isAuthEndpoint(originalRequest.url)
     ) {
-      if (!originalRequest._retry) {
-        originalRequest._retry = true;
-        try {
-          const newAccessToken = await refreshAccessToken();
-          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-          return instance(originalRequest);
-        } catch {
-          logout();
-          return Promise.reject({
-            statusCode: 401,
-            message: "Session expired. Please login again.",
-          });
-        }
+      originalRequest._retry = true;
+      try {
+        const newAccessToken = await refreshAccessToken();
+        originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+        return instance(originalRequest);
+      } catch {
+        logout();
+        return Promise.reject({
+          statusCode: 401,
+          message: "Session expired. Please login again.",
+        });
       }
-
-      // Still 401 after a fresh token → session is invalid.
-      logout();
-      return Promise.reject(toErrorObj(error));
     }
+    // A 401 after a successful refresh is NOT treated as logout: the backend
+    // also answers 401 for unknown routes, so just surface the error.
 
     // Handle 403
     if (status === 403) {

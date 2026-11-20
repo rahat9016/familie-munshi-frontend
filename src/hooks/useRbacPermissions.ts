@@ -40,7 +40,9 @@ export function useRbacPermissions() {
   }, [data, dispatch]);
 
   return {
-    loaded: loaded || !!data,
+    // Redux-backed only: `data` arrives one render before the slice is
+    // hydrated, and reading scope in that gap looks like "no access".
+    loaded,
     user,
     hasToken,
     isLoading: hasToken && isLoading,

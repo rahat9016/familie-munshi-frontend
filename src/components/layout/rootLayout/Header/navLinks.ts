@@ -55,6 +55,12 @@ export const navLinks = CATEGORIES;
 // ── API contract (assumed; swap endpoint/shape when backend is ready) ──────
 export const NAVIGATION_ENDPOINT = "/categories/navigation";
 
+/**
+ * Backend has no navigation endpoint yet — keep the request off and render
+ * the static fallback. Flip to true once `NAVIGATION_ENDPOINT` exists.
+ */
+export const NAVIGATION_API_ENABLED = false;
+
 export interface INavCategory {
   id: string;
   name: string;

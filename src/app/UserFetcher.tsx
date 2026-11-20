@@ -1,26 +1,37 @@
 "use client";
 import Cookies from "js-cookie";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { authKey } from "../constants/auth/storageKey";
+import { isAdminPanelScope } from "../constants/auth/permissions";
 import { useGet } from "../hooks/useGet";
 import {
   setLoading,
   setUserInformation,
 } from "../lib/redux/features/auth/authSlice";
-import { IUserInformation } from "../lib/redux/features/auth/authTypes";
 import { setPermissionsFromRole } from "../lib/redux/features/permission/permissionSlice";
-import { useAppDispatch } from "../lib/redux/hooks";
-import { decodedToken } from "../services/jwt";
+import { selectRbacUser } from "../lib/redux/features/rbac/rbacSelectors";
+import { useAppDispatch, useAppSelector } from "../lib/redux/hooks";
+
+/** GET /users/me response `data`. */
+interface IMyProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  active: boolean;
+}
 
 export const UserFetcher = () => {
   const dispatch = useAppDispatch();
+  const rbacUser = useAppSelector(selectRbacUser);
   const [accessToken, setAccessToken] = useState(
-    () => Cookies.get("accessToken") || ""
+    () => Cookies.get(authKey) || ""
   );
 
   useEffect(() => {
     const syncAccessToken = () => {
-      setAccessToken(Cookies.get("accessToken") || "");
+      setAccessToken(Cookies.get(authKey) || "");
     };
 
     window.addEventListener("auth-token-updated", syncAccessToken);
@@ -34,46 +45,47 @@ export const UserFetcher = () => {
     };
   }, []);
 
-  // Decode userId from the JWT accessToken (secure — token is signed by backend)
-  const decodedUserId = useMemo(() => {
-    if (!accessToken) return "";
-    try {
-      const decoded = decodedToken(accessToken) as {
-        id?: string;
-        userId?: string;
-        sub?: string;
-      };
-      return String(decoded.id || decoded.userId || decoded.sub || "");
-    } catch {
-      return "";
-    }
-  }, [accessToken]);
+  const isLoggedIn = !!accessToken;
 
-  const { data, isSuccess, isError, isFetching } = useGet<IUserInformation>(
-    `/user/${decodedUserId}`,
-    ["user", decodedUserId || ""],
+  const { data, isSuccess, isError, isFetching } = useGet<IMyProfile>(
+    "/users/me",
+    ["users-me"],
     undefined,
     {
-      enabled: !!decodedUserId,
+      enabled: isLoggedIn,
       staleTime: 5 * 60 * 1000,
     }
   );
 
   useEffect(() => {
-    dispatch(setLoading(Boolean(decodedUserId) && isFetching));
-  }, [decodedUserId, isFetching, dispatch]);
+    dispatch(setLoading(isLoggedIn && isFetching));
+  }, [isLoggedIn, isFetching, dispatch]);
 
-  // If user data is available, set it in the store
+  // Profile has no role field: role comes from GET /permissions/me (rbac
+  // slice) when loaded; any other logged-in user is a storefront USER.
+  const isAdminPanelUser = isAdminPanelScope(rbacUser.scope);
+  const roleName = rbacUser.roleName ?? "USER";
+
   useEffect(() => {
     if (isSuccess && data?.data) {
-      dispatch(setUserInformation(data.data));
-      dispatch(setPermissionsFromRole(data.data.role));
+      const profile = data.data;
+      dispatch(
+        setUserInformation({
+          id: profile.id,
+          email: profile.email,
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          status: profile.active ? "ACTIVE" : "INACTIVE",
+          role: roleName,
+        })
+      );
+      dispatch(setPermissionsFromRole(isAdminPanelUser ? "ADMIN" : "USER"));
       dispatch(setLoading(false));
     }
-  }, [isSuccess, data, dispatch]);
+  }, [isSuccess, data, roleName, isAdminPanelUser, dispatch]);
 
   useEffect(() => {
-    if (!decodedUserId) {
+    if (!isLoggedIn) {
       dispatch(setUserInformation({}));
       dispatch(setPermissionsFromRole(null));
       dispatch(setLoading(false));
@@ -83,7 +95,7 @@ export const UserFetcher = () => {
     if (isError) {
       dispatch(setLoading(false));
     }
-  }, [decodedUserId, isError, dispatch]);
+  }, [isLoggedIn, isError, dispatch]);
 
   return null;
 };

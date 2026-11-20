@@ -51,6 +51,7 @@ export const useAuth = (
       // Drop any permissions cached from a previous session.
       dispatch(clearRbacPermissions());
       queryClient.removeQueries({ queryKey: RBAC_QUERY_KEY });
+      queryClient.removeQueries({ queryKey: ["users-me"] });
 
       // Load this user's scope + permissions to decide where to go.
       let scope: string | null = null;

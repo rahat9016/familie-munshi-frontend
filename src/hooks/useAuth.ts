@@ -1,69 +1,76 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
-import { IUserInformation } from "../lib/redux/features/auth/authTypes";
-import { clearRbacPermissions } from "../lib/redux/features/rbac/rbacSlice";
+import { isAdminPanelScope } from "../constants/auth/permissions";
+import { authKey, refreshTokenKey } from "../constants/auth/storageKey";
+import {
+  clearRbacPermissions,
+  setRbacPermissions,
+} from "../lib/redux/features/rbac/rbacSlice";
 import { useAppDispatch } from "../lib/redux/hooks";
 import { authService } from "../services/auth";
+import {
+  fetchMyPermissions,
+  RBAC_QUERY_KEY,
+  toRbacState,
+} from "../services/rbac.service";
 import { IGenericErrorResponse } from "../types/common/common";
 
-interface JwtPayload {
-  role?: string;
-  isSuperAdmin?: boolean;
-  branchId?: string | null;
-  id?: string;
-  userId?: string;
-  sub?: string;
-}
-
 export interface AuthResponse {
+  id: string;
   accessToken: string;
   refreshToken: string;
-  message?: string;
-  user?: Partial<IUserInformation>;
+}
+
+export interface LoginResult {
+  /** PLATFORM | BRANCH | ... — null when permissions could not be loaded. */
+  scope: string | null;
+  /** true when scope is PLATFORM or BRANCH → admin panel. */
+  isAdminPanelUser: boolean;
 }
 
 export const useAuth = (
-  onSuccess?: (data: AuthResponse, role: string) => void
+  onSuccess?: (data: AuthResponse, result: LoginResult) => void
 ) => {
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
 
-  return useMutation({
+  return useMutation<
+    AuthResponse,
+    IGenericErrorResponse,
+    { email: string; password: string }
+  >({
     mutationFn: authService.login,
     onSuccess: async (data) => {
-      // Set accessToken & refreshToken as cookies
-      Cookies.set("accessToken", data.accessToken, { expires: 1 });
-      Cookies.set("refreshToken", data.refreshToken, { expires: 2 });
+      // Access token is short-lived (15m) and refreshed via the axios
+      // interceptor; refresh token lives 7 days.
+      Cookies.set(authKey, data.accessToken, { expires: 1 });
+      Cookies.set(refreshTokenKey, data.refreshToken, { expires: 7 });
       window.dispatchEvent(new Event("auth-token-updated"));
 
-      // Reset any cached RBAC permissions from a previous session so the
-      // sidebar/guards re-derive for THIS user (no stale "all routes").
+      // Drop any permissions cached from a previous session.
       dispatch(clearRbacPermissions());
-      queryClient.removeQueries({ queryKey: ["rbac-permissions"] });
+      queryClient.removeQueries({ queryKey: RBAC_QUERY_KEY });
 
-      // Decode identity from JWT. RBAC users (super admin or any branch
-      // member) are admin-panel users → route to /admin.
-      let role = "user";
+      // Load this user's scope + permissions to decide where to go.
+      let scope: string | null = null;
       try {
-        const decoded = jwtDecode<JwtPayload>(data.accessToken);
-        if (decoded.isSuperAdmin) role = "SUPER_ADMIN";
-        else if (decoded.branchId) role = "BRANCH_USER";
-        else role = decoded.role || "user";
-      } catch {
-        console.error("Failed to decode JWT");
+        const me = await queryClient.fetchQuery({
+          queryKey: RBAC_QUERY_KEY,
+          queryFn: fetchMyPermissions,
+          staleTime: 5 * 60 * 1000,
+        });
+        dispatch(setRbacPermissions(toRbacState(me)));
+        scope = me.scope ?? null;
+      } catch (error) {
+        console.error("Failed to load permissions", error);
       }
 
-      toast.success(data.message || "Login successful");
-      if (onSuccess) {
-        onSuccess(data, role);
-      }
+      toast.success("Login successful");
+      onSuccess?.(data, { scope, isAdminPanelUser: isAdminPanelScope(scope) });
     },
-    onError: (error: IGenericErrorResponse) => {
-      console.log(error);
-      toast.error(error.message);
-      throw error;
+    onError: (error) => {
+      toast.error(error?.message || "Login failed");
     },
   });
 };

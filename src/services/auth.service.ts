@@ -1,9 +1,8 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import { redirect } from "next/navigation";
 import { removeAuthCookies } from "../actions/cookiesAction";
 import { getBaseUrl } from "../config/envConfig";
-import { authKey } from "../constants/auth/storageKey";
+import { authKey, refreshTokenKey } from "../constants/auth/storageKey";
 import { getFromLocalStorage, setToLocalStorage } from "../utils/local-storage";
 import { decodedToken } from "./jwt";
 
@@ -32,19 +31,24 @@ export const removeUserInfo = (key: string) => {
 };
 
 export async function logout() {
+  // Clear client-readable cookies immediately
+  Cookies.remove(authKey);
+  Cookies.remove(refreshTokenKey);
+
   // Remove all auth cookies (httpOnly + regular) via server action
   await removeAuthCookies();
 
   // Remove user-specific information from localStorage
   removeUserInfo("accessToken");
 
-  // Redirect to the home page
-  redirect("/");
+  // Hard navigation also resets redux + react-query state
+  if (typeof window !== "undefined") {
+    window.location.href = "/auth/login";
+  }
 }
 
 export const getNewAccessToken = async () => {
-  const refreshToken = Cookies.get("refreshToken");
-  console.log("refreshToken", refreshToken);
+  const refreshToken = Cookies.get(refreshTokenKey);
   if (!refreshToken) {
     throw new Error("Refresh token expired");
   }

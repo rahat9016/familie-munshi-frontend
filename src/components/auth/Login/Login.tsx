@@ -24,11 +24,20 @@ export default function LoginPage() {
     mutateAsync: login,
     isPending,
     error,
-  } = useAuth((_data, role: string) => {
+  } = useAuth((_data, { isAdminPanelUser }) => {
+    // Only honour same-origin relative redirects; admin routes only for
+    // PLATFORM / BRANCH scoped users.
     const redirect = searchParams.get("redirect");
-    if (redirect) {
-      router.push(redirect);
-    } else if (isAdminRole(role)) {
+    const safeRedirect =
+      redirect && redirect.startsWith("/") && !redirect.startsWith("//")
+        ? redirect
+        : null;
+    const redirectAllowed =
+      safeRedirect && (isAdminPanelUser || !safeRedirect.startsWith("/admin"));
+
+    if (redirectAllowed) {
+      router.push(safeRedirect);
+    } else if (isAdminPanelUser) {
       router.push("/admin");
     } else {
       router.push("/");
@@ -36,9 +45,11 @@ export default function LoginPage() {
   });
 
   const onSubmit = (data: LoginFormType) => {
-    login(data).then(() => {
-      methods.reset();
-    });
+    login(data)
+      .then(() => methods.reset())
+      .catch(() => {
+        // error surfaced via toast + `error` prop
+      });
   };
 
   const handleGoogleSuccess = (role: string) => {

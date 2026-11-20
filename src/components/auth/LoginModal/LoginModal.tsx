@@ -3,10 +3,7 @@
 import ControlledInputField from "@/src/components/shared/FromController/ControlledInputField";
 import GoogleSignInButton from "@/src/components/shared/GoogleSignInButton/GoogleSignInButton";
 import { useAuth } from "@/src/hooks/useAuth";
-import {
-  closeLoginModal,
-  setUserInformation,
-} from "@/src/lib/redux/features/auth/authSlice";
+import { closeLoginModal } from "@/src/lib/redux/features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "@/src/lib/redux/hooks";
 import { isAdminRole } from "@/src/utils/UserRoleEnum";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -46,14 +43,10 @@ export default function LoginModal() {
     isPending,
     error,
     reset: resetAuthError,
-  } = useAuth((data, role) => {
-    if (data.user) {
-      dispatch(setUserInformation(data.user));
-    }
-
+  } = useAuth((_data, { isAdminPanelUser }) => {
     dispatch(closeLoginModal());
     resetForm();
-    if (isAdminRole(role)) {
+    if (isAdminPanelUser) {
       router.push("/admin");
     }
   });

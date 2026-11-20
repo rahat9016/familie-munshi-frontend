@@ -1,18 +1,11 @@
 "use client";
 
-import { useRbacPermissions } from "@/src/hooks/useRbacPermissions";
-import { selectRbac } from "@/src/lib/redux/features/rbac/rbacSelectors";
-import { useAppSelector } from "@/src/lib/redux/hooks";
+import { useAccessibleMenuItems } from "@/src/hooks/useAccessibleMenuItems";
 import { cn } from "@/src/lib/utils";
-import {
-  filterMenuByAccess,
-  getMenuItems,
-  type MenuItem,
-} from "@/src/utils/getMenuItems";
+import { type MenuItem } from "@/src/utils/getMenuItems";
 import { ChevronDown, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +23,8 @@ function isChildMatch(
 ) {
   if (pathname === href) return true;
   if (href !== "/admin" && pathname.startsWith(href)) return true;
-  if (matchRoutes && matchRoutes.some((r) => pathname.startsWith(r))) return true;
+  if (matchRoutes && matchRoutes.some((r) => pathname.startsWith(r)))
+    return true;
   return false;
 }
 
@@ -44,21 +38,7 @@ function isItemActive(item: MenuItem, pathname: string) {
 
 export default function HeaderNav() {
   const pathname = usePathname();
-  useRbacPermissions();
-  const rbac = useAppSelector(selectRbac);
-
-  const menuItems = useMemo(() => {
-    const hasPermissions =
-      rbac.loaded && Object.keys(rbac.permissions ?? {}).length > 0;
-    const can = (resource: string) => {
-      if (!hasPermissions) return true;
-      if (rbac.user.isSuperAdmin) return true;
-      const resourcePerms = rbac.permissions[resource];
-      if (!resourcePerms) return true;
-      return Object.values(resourcePerms).some(Boolean);
-    };
-    return filterMenuByAccess(getMenuItems(), can, rbac.user.isSuperAdmin);
-  }, [rbac]);
+  const menuItems = useAccessibleMenuItems();
 
   return (
     <div className="h-11 flex items-center justify-center px-3 md:px-6 border-t border-skeleton">
@@ -89,8 +69,11 @@ export default function HeaderNav() {
                       <Link
                         href={child.href}
                         className={cn(
-                          isChildMatch(child.href, child.matchRoutes, pathname) &&
-                            "text-primary font-medium"
+                          isChildMatch(
+                            child.href,
+                            child.matchRoutes,
+                            pathname
+                          ) && "text-primary font-medium"
                         )}
                       >
                         {child.label}
@@ -103,7 +86,11 @@ export default function HeaderNav() {
           }
 
           return (
-            <Link key={item.label} href={item.href ?? "#"} className={itemClass}>
+            <Link
+              key={item.label}
+              href={item.href ?? "#"}
+              className={itemClass}
+            >
               <item.icon className="w-4 h-4" />
               {item.label}
             </Link>

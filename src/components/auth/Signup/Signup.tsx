@@ -27,7 +27,7 @@ export default function SignupPage() {
     error,
     reset,
     isPending,
-  } = usePost("/auth/register");
+  } = usePost("/auth/signup");
 
   const onSubmit = (data: SignupFormType) => {
     signup({

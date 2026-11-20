@@ -12,7 +12,7 @@ import { ShieldAlert, Loader2 } from "lucide-react";
 interface RbacRouteGuardProps {
   /** When true, only super admin may view the page. */
   superAdminOnly?: boolean;
-  /** Otherwise allow super admin OR a user with `read` on this resource. */
+  /** Otherwise allow super admin OR a user with `<MODULE>_READ` (e.g. "BRANCH"). */
   resource?: string;
   children: ReactNode;
 }
@@ -29,7 +29,7 @@ export default function RbacRouteGuard({
   const { isLoading, loaded } = useRbacPermissions();
   const isSuperAdmin = useAppSelector(selectIsSuperAdmin);
   const canRead = useAppSelector(
-    resource ? selectCan(resource, "read") : () => false,
+    resource ? selectCan(resource, "READ") : () => false
   );
 
   if (isLoading && !loaded) {
@@ -41,7 +41,7 @@ export default function RbacRouteGuard({
     );
   }
 
-  const allowed = isSuperAdmin || (!superAdminOnly && !!resource && canRead);
+  const allowed = superAdminOnly ? isSuperAdmin : !!resource && canRead;
 
   if (!allowed) {
     return (

@@ -1,3 +1,4 @@
+import { isAdminPanelScope } from "@/src/constants/auth/permissions";
 import { RootState } from "../../store";
 import type { Action } from "@/src/config/rbac";
 
@@ -8,8 +9,22 @@ export const selectRbacLoaded = (state: RootState) => state.rbac.loaded;
 export const selectIsSuperAdmin = (state: RootState) =>
   state.rbac.user.isSuperAdmin;
 
-/** Curried selector: can the user perform `action` on `resource`? */
+export const selectCanAccessAdminPanel = (state: RootState) =>
+  isAdminPanelScope(state.rbac.user.scope);
+
+/**
+ * Curried selector: can the user perform `action` on `module`?
+ * e.g. selectCan("BRANCH", "CREATE"). Super admin always passes.
+ */
 export const selectCan =
-  (resource: string, action: Action) =>
+  (module: string, action: Action) =>
   (state: RootState): boolean =>
-    state.rbac.permissions[resource]?.[action] ?? false;
+    state.rbac.user.isSuperAdmin ||
+    (state.rbac.permissions[module.toUpperCase()]?.[action.toUpperCase()] ??
+      false);
+
+/** Curried selector by raw permission name, e.g. "ROLE_PERMISSION_MANAGE". */
+export const selectHasPermission =
+  (name: string) =>
+  (state: RootState): boolean =>
+    state.rbac.user.isSuperAdmin || state.rbac.permissionNames.includes(name);

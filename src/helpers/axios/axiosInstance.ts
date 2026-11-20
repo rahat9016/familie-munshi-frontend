@@ -6,16 +6,16 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 
-// const instance = axios.create({
-//   baseURL: typeof window !== "undefined" ? "/api" : getBaseUrl(),
-//   withCredentials: true,
-// });
 const instance = axios.create({
   baseURL: getBaseUrl(),
   withCredentials: true,
 });
 instance.defaults.headers.post["Content-Type"] = "application/json";
 instance.defaults.timeout = 60000;
+
+const AUTH_ENDPOINTS = ["/auth/login", "/auth/signup", "/auth/refresh-token"];
+const isAuthEndpoint = (url?: string) =>
+  !!url && AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint));
 
 // Request interceptor
 instance.interceptors.request.use(
@@ -41,8 +41,8 @@ instance.interceptors.request.use(
       config.headers["Content-Type"] = "multipart/form-data";
     }
 
-    // Skip adding Authorization header for login endpoint
-    if (!config.url?.includes("/auth/login")) {
+    // Skip adding Authorization header for public auth endpoints
+    if (!isAuthEndpoint(config.url)) {
       const accessToken = getCookies(authKey);
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
@@ -55,71 +55,90 @@ instance.interceptors.request.use(
   }
 );
 
+// Single in-flight refresh shared by all requests that hit 401 together.
+let refreshPromise: Promise<string> | null = null;
+
+function refreshAccessToken(): Promise<string> {
+  if (!refreshPromise) {
+    refreshPromise = getNewAccessToken()
+      .then((body) => {
+        const newAccessToken: string | undefined = body?.data?.accessToken;
+        if (!newAccessToken) throw new Error("No access token in response");
+        Cookies.set(authKey, newAccessToken, { expires: 1 });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("auth-token-updated"));
+        }
+        return newAccessToken;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
+const toErrorObj = (error: {
+  response?: {
+    data?: { statusCode?: number; message?: string; errors?: unknown };
+    status?: number;
+  };
+}) => ({
+  statusCode:
+    error?.response?.data?.statusCode || error?.response?.status || 500,
+  message: error?.response?.data?.message || "Something went wrong",
+  errorMessages: error?.response?.data?.message,
+  errors: error?.response?.data?.errors,
+});
+
 instance.interceptors.response.use(
-  // ✅ Handle success
+  // ✅ Unwrap the `{ success, message, data, meta }` envelope
   //@ts-expect-error: response type is not always consistent
   function (response) {
     return {
       data: response?.data?.data,
       meta: response?.data?.meta,
+      message: response?.data?.message,
     };
   },
 
   // ❌ Handle errors
   async function (error) {
     const originalRequest = error.config;
-    if (error?.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    const status = error?.response?.status;
 
-      const errorMessage = error?.response?.data?.message;
-      if (errorMessage.includes("jwt expired")) {
+    // 401 on a protected endpoint → refresh access token once, then retry.
+    if (
+      status === 401 &&
+      originalRequest &&
+      !isAuthEndpoint(originalRequest.url)
+    ) {
+      if (!originalRequest._retry) {
+        originalRequest._retry = true;
         try {
-          const response = await getNewAccessToken();
-          const newAccessToken = response.data.accessToken;
-          Cookies.set("accessToken", newAccessToken);
-
+          const newAccessToken = await refreshAccessToken();
           originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
           return instance(originalRequest);
-        } catch (refreshError) {
+        } catch {
           logout();
-          return Promise.reject(refreshError);
+          return Promise.reject({
+            statusCode: 401,
+            message: "Session expired. Please login again.",
+          });
         }
       }
 
-      // Case: Refresh token expired or missing
-      if (errorMessage.includes("jwt expired")) {
-        logout();
-        return Promise.reject("Session expired. Please login again.");
-      }
-
-      // Case: Invalid password
-      if (errorMessage.includes("Password is incorrect")) {
-        const errorObj = {
-          statusCode: error?.response?.data?.statusCode || 500,
-          message: error?.response?.data?.message || "Something went wrong",
-          errorMessages: error?.response?.data?.message,
-        };
-        return Promise.reject(errorObj);
-      }
-
+      // Still 401 after a fresh token → session is invalid.
       logout();
+      return Promise.reject(toErrorObj(error));
     }
 
     // Handle 403
-    if (error?.response?.status === 403) {
+    if (status === 403) {
       toast.error("You do not have permission to access this resource");
-      return Promise.reject(error);
+      return Promise.reject(toErrorObj(error));
     }
 
-    // Generic Error Handler
-    const errorObj = {
-      statusCode: error?.response?.data?.statusCode || 500,
-      message: error?.response?.data?.message || "Something went wrong",
-      errorMessages: error?.response?.data?.message,
-      errors: error?.response?.data?.errors,
-    };
-
-    return Promise.reject(errorObj);
+    return Promise.reject(toErrorObj(error));
   }
 );
 export { instance as axiosInstance };

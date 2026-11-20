@@ -6,14 +6,15 @@ import {
   ShieldCheck,
   ShoppingCart,
   Users,
-  type LucideIcon
+  type LucideIcon,
 } from "lucide-react";
+import { PERMISSION_MODULE } from "../constants/auth/permissions";
 
 export interface MenuChild {
   label: string;
   href: string;
   matchRoutes?: string[];
-  /** RBAC resource gating this child; omit = always visible. */
+  /** Backend permission module gating this child (needs <MODULE>_READ); omit = always visible. */
   resource?: string;
 }
 
@@ -24,7 +25,7 @@ export interface MenuItem {
   href?: string;
   matchRoutes?: string[];
   children?: MenuChild[];
-  /** RBAC resource gating this item/group; omit = always visible. */
+  /** Backend permission module gating this item/group (needs <MODULE>_READ); omit = always visible. */
   resource?: string;
   /** Only visible to super admin. */
   superOnly?: boolean;
@@ -39,7 +40,7 @@ export function getMenuItems(): MenuItem[] {
       segment: "Style & PLM Management",
       label: "Seasons & Styles (PLM)",
       icon: Calendar,
-      resource: "products",
+      resource: PERMISSION_MODULE.PRODUCT,
       href: "/admin/styles",
       matchRoutes: ["/admin/styles"],
     },
@@ -49,7 +50,7 @@ export function getMenuItems(): MenuItem[] {
       segment: "Category & Brand",
       label: "Category Hierarchy",
       icon: FolderTree,
-      resource: "products",
+      resource: PERMISSION_MODULE.PRODUCT,
       children: [
         {
           label: "Group",
@@ -79,7 +80,7 @@ export function getMenuItems(): MenuItem[] {
       segment: "Order Management",
       label: "Orders",
       icon: ShoppingCart,
-      resource: "orders",
+      resource: PERMISSION_MODULE.ORDER,
       children: [
         { label: "All Orders", href: "/admin/orders" },
         { label: "Return & Refund", href: "/admin/orders/return-refund" },
@@ -91,18 +92,38 @@ export function getMenuItems(): MenuItem[] {
       label: "Users",
       icon: Users,
       href: "/admin/users",
-      resource: "customers",
+      resource: PERMISSION_MODULE.CUSTOMER,
     },
     {
       segment: "Access Control",
       label: "Branch RBAC",
       icon: ShieldCheck,
       children: [
-        { label: "Branches", href: "/admin/rbac/branches", resource: "branches" },
-        { label: "Roles", href: "/admin/rbac/roles", resource: "roles" },
-        { label: "Actions", href: "/admin/rbac/actions", resource: "actions" },
-        { label: "Users", href: "/admin/rbac/users", resource: "users" },
-        { label: "Permissions", href: "/admin/rbac/permissions", resource: "permissions" },
+        {
+          label: "Branches",
+          href: "/admin/rbac/branches",
+          resource: PERMISSION_MODULE.BRANCH,
+        },
+        {
+          label: "Roles",
+          href: "/admin/rbac/roles",
+          resource: PERMISSION_MODULE.ROLE,
+        },
+        {
+          label: "Actions",
+          href: "/admin/rbac/actions",
+          resource: PERMISSION_MODULE.ACTION,
+        },
+        {
+          label: "Users",
+          href: "/admin/rbac/users",
+          resource: PERMISSION_MODULE.USER,
+        },
+        {
+          label: "Permissions",
+          href: "/admin/rbac/permissions",
+          resource: PERMISSION_MODULE.PERMISSION,
+        },
       ],
     },
     {
@@ -127,7 +148,7 @@ export function getMenuItems(): MenuItem[] {
 export function filterMenuByAccess(
   items: MenuItem[],
   can: (resource: string) => boolean,
-  isSuperAdmin = false,
+  isSuperAdmin = false
 ): MenuItem[] {
   const out: MenuItem[] = [];
   for (const item of items) {
@@ -135,7 +156,9 @@ export function filterMenuByAccess(
     if (item.resource && !can(item.resource)) continue;
 
     if (item.children) {
-      const children = item.children.filter((c) => !c.resource || can(c.resource));
+      const children = item.children.filter(
+        (c) => !c.resource || can(c.resource)
+      );
       if (children.length === 0) continue;
       out.push({ ...item, children });
     } else {

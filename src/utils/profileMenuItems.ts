@@ -1,15 +1,21 @@
 import {
-    CreditCard,
-    Home,
-    LayoutDashboard,
-    MapPin,
-    Package,
-    RotateCcw,
-    User,
-    XCircle,
+  CreditCard,
+  MapPin,
+  Package,
+  RotateCcw,
+  User,
+  XCircle,
+  type LucideIcon,
 } from "lucide-react";
 
-export const userMenuItems = [
+export interface ProfileMenuItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+}
+
+/** Customer account menu (storefront users only). */
+export const userMenuItems: ProfileMenuItem[] = [
   { label: "My Profile", href: "/account", icon: User },
   { label: "My Orders", href: "/account/orders", icon: Package },
   { label: "Returns", href: "/account/returns", icon: RotateCcw },
@@ -38,10 +44,4 @@ export const sidebarSections = [
       "/account/cancellations"
     ),
   },
-];
-
-export const adminMenuItems = [
-  { label: "Admin Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Go to Storefront", href: "/", icon: Home },
-  { label: "Manage Users", href: "/admin/users", icon: User },
 ];

@@ -8,12 +8,13 @@ import {
   setRbacPermissions,
 } from "../lib/redux/features/rbac/rbacSlice";
 import { useAppDispatch } from "../lib/redux/hooks";
-import { authService } from "../services/auth";
+import { axiosInstance } from "../helpers/axios/axiosInstance";
 import {
-  fetchMyPermissions,
+  MyPermissionsResponse,
+  PERMISSIONS_ME_ENDPOINT,
   RBAC_QUERY_KEY,
   toRbacState,
-} from "../services/rbac.service";
+} from "../utils/rbac";
 import { IGenericErrorResponse } from "../types/common/common";
 
 export interface AuthResponse {
@@ -40,7 +41,10 @@ export const useAuth = (
     IGenericErrorResponse,
     { email: string; password: string }
   >({
-    mutationFn: authService.login,
+    // POST /auth/login — interceptor unwraps the envelope → `.data`.
+    mutationFn: async (credentials) =>
+      (await axiosInstance.post("/auth/login", credentials))
+        .data as AuthResponse,
     onSuccess: async (data) => {
       // Access token is short-lived (15m) and refreshed via the axios
       // interceptor; refresh token lives 7 days.
@@ -56,11 +60,16 @@ export const useAuth = (
       // Load this user's scope + permissions to decide where to go.
       let scope: string | null = null;
       try {
-        const me = await queryClient.fetchQuery({
+        // Same key + cache shape as useGet in useRbacPermissions.
+        const res = await queryClient.fetchQuery({
           queryKey: RBAC_QUERY_KEY,
-          queryFn: fetchMyPermissions,
+          queryFn: async () =>
+            (await axiosInstance.get(PERMISSIONS_ME_ENDPOINT)) as unknown as {
+              data: MyPermissionsResponse;
+            },
           staleTime: 5 * 60 * 1000,
         });
+        const me = res.data;
         dispatch(setRbacPermissions(toRbacState(me)));
         scope = me.scope ?? null;
       } catch (error) {

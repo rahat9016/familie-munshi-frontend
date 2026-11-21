@@ -6,7 +6,7 @@ import { useAppSelector } from "@/src/lib/redux/hooks";
 import { RbacUser } from "@/src/types/rbac/rbac";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { mockBranchesList } from "../../Branches/data/mockBranchData";
+import { mockBranchesList } from "@/src/components/admin/Branches/data/mockBranchData";
 import { mockRbacUsersList } from "../../Users/data/mockRbacUserData";
 import PermissionsTable from "../PermissionsTable";
 import PermissionViewModal from "../PermissionViewModal";

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { deleteService } from "../services/auth";
+import { axiosInstance } from "../helpers/axios/axiosInstance";
 import { IGenericErrorResponse } from "../types/common/common";
 
 export const useDelete = <T>(
@@ -11,7 +11,9 @@ export const useDelete = <T>(
 
   return useMutation({
     mutationFn: (params: { url: string }) => {
-      return deleteService.delete(params.url);
+      return axiosInstance
+        .delete(params.url)
+        .then((response) => response.data as T);
     },
     onSuccess: (data) => {
       if (invalidateQueriesKeys) {

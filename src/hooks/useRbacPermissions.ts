@@ -8,13 +8,14 @@ import {
 } from "@/src/lib/redux/features/rbac/rbacSelectors";
 import { useAppDispatch, useAppSelector } from "@/src/lib/redux/hooks";
 import {
-  fetchMyPermissions,
+  MyPermissionsResponse,
+  PERMISSIONS_ME_ENDPOINT,
   RBAC_QUERY_KEY,
   toRbacState,
-} from "@/src/services/rbac.service";
-import { useQuery } from "@tanstack/react-query";
+} from "@/src/utils/rbac";
 import Cookies from "js-cookie";
 import { useEffect } from "react";
+import { useGet } from "./useGet";
 
 /**
  * Loads GET /permissions/me once (cached by react-query) and hydrates the
@@ -27,16 +28,15 @@ export function useRbacPermissions() {
   const user = useAppSelector(selectRbacUser);
   const hasToken = typeof window !== "undefined" && !!Cookies.get(authKey);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: RBAC_QUERY_KEY,
-    queryFn: fetchMyPermissions,
-    enabled: hasToken,
-    retry: false,
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data, isLoading, isError } = useGet<MyPermissionsResponse>(
+    PERMISSIONS_ME_ENDPOINT,
+    RBAC_QUERY_KEY,
+    undefined,
+    { enabled: hasToken, staleTime: 5 * 60 * 1000 }
+  );
 
   useEffect(() => {
-    if (data) dispatch(setRbacPermissions(toRbacState(data)));
+    if (data?.data) dispatch(setRbacPermissions(toRbacState(data.data)));
   }, [data, dispatch]);
 
   return {

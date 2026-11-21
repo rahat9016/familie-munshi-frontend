@@ -1,10 +1,6 @@
-import ClassificationList from "@/src/components/admin/Categories/ClassificationList/ClassificationList";
-import { ProductClassificationLevel } from "@/src/types/ecommerce/productClassification";
+import Categories from "@/src/components/admin/Categories/Categories";
+import { ProductClassificationLevel } from "@/src/types/productClassification";
 
 export default function page() {
-  return (
-    <div>
-      <ClassificationList level={ProductClassificationLevel.PARENT_CATEGORY} />
-    </div>
-  );
+  return <Categories level={ProductClassificationLevel.PARENT_CATEGORY} />;
 }

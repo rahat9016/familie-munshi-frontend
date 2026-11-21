@@ -1,6 +1,6 @@
 import { getBaseUrl } from "@/src/config/envConfig";
 import { authKey, refreshTokenKey } from "@/src/constants/auth/storageKey";
-import { getNewAccessToken, logout } from "@/src/services/auth.service";
+import { getNewAccessToken, logout } from "@/src/helpers/auth/session";
 import { getCookies } from "@/src/utils/local-storage";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -14,7 +14,11 @@ const instance = axios.create({
 instance.defaults.headers.post["Content-Type"] = "application/json";
 instance.defaults.timeout = 60000;
 
-const AUTH_ENDPOINTS = ["/auth/login", "/auth/signup", "/auth/refresh-token"];
+const AUTH_ENDPOINTS = [
+  "/auth/login",
+  "/auth/signup",
+  "/auth/refresh-token",
+];
 const isAuthEndpoint = (url?: string) =>
   !!url && AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint));
 

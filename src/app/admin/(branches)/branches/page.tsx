@@ -1,7 +1,5 @@
-"use client";
+import Branches from "@/src/components/admin/Branches/Branches";
 
-import BranchList from "@/src/components/admin/RBAC/Branches/BranchList/BranchList";
-
-export default function RbacBranchesPage() {
-  return <BranchList />;
+export default function page() {
+  return <Branches />;
 }

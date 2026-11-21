@@ -1,5 +1,5 @@
 import { mockCategoriesList } from "@/src/components/admin/Categories/data/mockCategoryHierarchy";
-import { mockBranchesList } from "@/src/components/admin/RBAC/Branches/data/mockBranchData";
+import { mockBranchesList } from "@/src/components/admin/Branches/data/mockBranchData";
 import { ControlledCheckField } from "@/src/components/shared/FromController/ControlledCheckField";
 import ControlledSelectField from "@/src/components/shared/FromController/ControlledSelectField";
 import InputLabel from "@/src/components/shared/InputLabel";

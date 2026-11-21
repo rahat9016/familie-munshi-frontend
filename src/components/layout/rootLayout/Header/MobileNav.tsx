@@ -4,6 +4,7 @@ import {
   logoutUser,
   openLoginModal,
 } from "@/src/lib/redux/features/auth/authSlice";
+import { selectCanAccessAdminPanel } from "@/src/lib/redux/features/rbac/rbacSelectors";
 import { useAppDispatch, useAppSelector } from "@/src/lib/redux/hooks";
 import {
   ChevronDown,
@@ -49,6 +50,9 @@ export default function MobileNav({ open, setOpen }: MobileNavProps) {
   const cartItems = useAppSelector((state) => state.cart.items);
   const { userInformation } = useAppSelector((state) => state.auth);
   const isLoggedIn = !!userInformation?.firstName;
+  // PLATFORM / BRANCH users go to the admin panel, not the customer account.
+  const isAdminPanelUser = useAppSelector(selectCanAccessAdminPanel);
+  const accountHref = isAdminPanelUser ? "/admin" : "/account";
   const { gender, genders, navByGender } = useGender();
 
   // null = follow the active gender; "" = explicitly collapsed; else a gender.
@@ -101,9 +105,9 @@ export default function MobileNav({ open, setOpen }: MobileNavProps) {
 
           {isLoggedIn ? (
           <Link
-            href="/account"
+            href={accountHref}
             className={`flex flex-col items-center justify-center gap-0.5 min-w-[60px] py-1 ${
-              pathname?.startsWith("/account") ? "text-primary" : "text-gray-500"
+              pathname?.startsWith(accountHref) ? "text-primary" : "text-gray-500"
             }`}
           >
             {isLoggedIn && userInformation.profilePicture ? (
@@ -113,11 +117,11 @@ export default function MobileNav({ open, setOpen }: MobileNavProps) {
                 width={24}
                 height={24}
                 className={`w-6 h-6 rounded-full object-cover ${
-                  pathname?.startsWith("/account") ? "ring-2 ring-primary" : "ring-1 ring-gray-200"
+                  pathname?.startsWith(accountHref) ? "ring-2 ring-primary" : "ring-1 ring-gray-200"
                 }`}
               />
             ) : (
-              <User size={22} strokeWidth={pathname?.startsWith("/account") ? 2.5 : 1.5} />
+              <User size={22} strokeWidth={pathname?.startsWith(accountHref) ? 2.5 : 1.5} />
             )}
             <span className="text-[10px] font-medium">
               {isLoggedIn ? userInformation.firstName : "Account"}

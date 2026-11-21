@@ -1,7 +1,8 @@
 import {
+  Building2,
   FolderTree,
   LayoutDashboard,
-  ShieldCheck,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { PERMISSION } from "../constants/auth/permissions";
@@ -59,15 +60,16 @@ export function getMenuItems(): MenuItem[] {
     },
 
     {
+      label: "Branches",
+      icon: Building2,
+      href: "/admin/branches",
+      permissions: [PERMISSION.BRANCH_LIST, PERMISSION.BRANCH_READ],
+    },
+    {
       segment: "Access Control",
-      label: "Branch RBAC",
-      icon: ShieldCheck,
+      label: "User Management",
+      icon: Users,
       children: [
-        {
-          label: "Branches",
-          href: "/admin/rbac/branches",
-          permissions: [PERMISSION.BRANCH_LIST, PERMISSION.BRANCH_READ],
-        },
         {
           label: "Roles",
           href: "/admin/rbac/roles",

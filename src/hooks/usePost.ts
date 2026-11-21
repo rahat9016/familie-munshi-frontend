@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosRequestConfig } from "axios";
 import { IGenericErrorResponse } from "../types/common/common";
-import { postService } from "../services/auth";
+import { axiosInstance } from "../helpers/axios/axiosInstance";
 
 export interface PostArg {
   endpoint?: string;
@@ -41,7 +41,10 @@ export const usePost = <T>(
         );
       }
 
-      return postService.request(endpoint, data, config);
+      // Interceptor unwraps the envelope → `.data` is the payload.
+      return axiosInstance
+        .post(endpoint, data, config)
+        .then((response) => response.data as T);
     },
 
     onSuccess: (data) => {

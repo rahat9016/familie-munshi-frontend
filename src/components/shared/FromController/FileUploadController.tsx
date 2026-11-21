@@ -4,6 +4,9 @@ import { FileText, X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
+/** Document URLs get a file icon; any other URL is previewed as an image. */
+const DOC_URL = /\.(pdf|docx?)(\?|#|$)/i;
+
 export const SUPPORTED_FORMATS = [
   "image/jpg",
   "image/webp",
@@ -49,9 +52,9 @@ export function FileUploadController({
           fileValue instanceof File
             ? fileValue.type.startsWith("image/")
             : typeof fileValue === "string"
-              ? /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(fileValue)
+              ? !DOC_URL.test(fileValue)
               : !touched && initialUrl
-                ? /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(initialUrl)
+                ? !DOC_URL.test(initialUrl)
                 : false;
 
         // preview url
@@ -195,6 +198,9 @@ export function FileUploadController({
                         width={244}
                         height={132}
                         alt="Preview"
+                        // Previews are blob: or backend URLs on any host —
+                        // skip the optimizer (and its remotePatterns check).
+                        unoptimized
                         className={cn(
                           "w-full h-full object-contain rounded-lg border border-light",
                           imgClassName

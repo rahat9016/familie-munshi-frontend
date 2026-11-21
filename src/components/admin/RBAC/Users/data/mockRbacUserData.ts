@@ -1,4 +1,4 @@
-import { mockBranchesList } from "../../Branches/data/mockBranchData";
+import { mockBranchesList } from "@/src/components/admin/Branches/data/mockBranchData";
 import { RbacUser } from "../types";
 
 // Local RBAC user directory used until /api/branches/users is live.

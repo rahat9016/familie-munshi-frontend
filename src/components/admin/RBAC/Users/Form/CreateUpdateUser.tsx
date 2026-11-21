@@ -9,7 +9,7 @@ import {
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useMemo } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { mockBranchesList } from "../../Branches/data/mockBranchData";
+import { mockBranchesList } from "@/src/components/admin/Branches/data/mockBranchData";
 import { mockRolesList } from "../../Roles/data/mockRoleData";
 import { makeUserSchema, UserFormValues } from "../Schema/userSchema";
 import { RbacUser } from "../types";

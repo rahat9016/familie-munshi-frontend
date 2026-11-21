@@ -6,7 +6,7 @@ import { selectIsSuperAdmin } from "@/src/lib/redux/features/rbac/rbacSelectors"
 import { useAppSelector } from "@/src/lib/redux/hooks";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { mockBranchesList } from "../../Branches/data/mockBranchData";
+import { mockBranchesList } from "@/src/components/admin/Branches/data/mockBranchData";
 import { mockRolesList } from "../../Roles/data/mockRoleData";
 import { mockRbacUsersList } from "../data/mockRbacUserData";
 import CreateUpdateUser from "../Form/CreateUpdateUser";

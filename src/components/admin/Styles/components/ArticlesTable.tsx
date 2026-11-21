@@ -1,7 +1,7 @@
 "use client";
 
 import { mockCategoriesList } from "@/src/components/admin/Categories/data/mockCategoryHierarchy";
-import { mockBranchesList } from "@/src/components/admin/RBAC/Branches/data/mockBranchData";
+import { mockBranchesList } from "@/src/components/admin/Branches/data/mockBranchData";
 import {
   Breadcrumb,
   BreadcrumbItem,

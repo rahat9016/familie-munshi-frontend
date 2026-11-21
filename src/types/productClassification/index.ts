@@ -23,7 +23,8 @@ export const PRODUCT_CLASSIFICATION_PARENT_LEVEL: Record<
   ProductClassificationLevel | null
 > = {
   [ProductClassificationLevel.GROUP]: null,
-  [ProductClassificationLevel.PARENT_CATEGORY]: ProductClassificationLevel.GROUP,
+  [ProductClassificationLevel.PARENT_CATEGORY]:
+    ProductClassificationLevel.GROUP,
   [ProductClassificationLevel.CATEGORY]:
     ProductClassificationLevel.PARENT_CATEGORY,
   [ProductClassificationLevel.SEGMENT]: ProductClassificationLevel.CATEGORY,

@@ -1,63 +1,41 @@
-export interface IParentCategory {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  status?: "ACTIVE" | "INACTIVE" | string;
-  groupId?: string;
-  groupName?: string;
-  createdAt: string;
-  actions?: string;
+import { ISelectOption } from "@/src/types/common/common";
+import { ErrorType } from "@/src/types/common/common";
+import {
+  IProductClassification,
+  ProductClassificationLevel,
+} from "@/src/types/productClassification";
+import { CategoryFormType } from "../Schema";
+
+export interface CategoriesProps {
+  level: ProductClassificationLevel;
 }
 
-export interface ICategory {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  status?: "ACTIVE" | "INACTIVE" | string;
-  parentCategoryId?: string;
-  parentCategoryName?: string;
-  parentCategory?: {
-    id: string;
-    name: string;
-    icon?: string;
-  };
-  updatedAt?: string;
-  createdAt: string;
-  actions?: string;
+export interface CategoryFormProps {
+  onSubmit: (data: CategoryFormType) => void;
+  onCancel: () => void;
+  /** e.g. "Parent Category" */
+  levelLabel: string;
+  /** Label of the level above; null = GROUP (no parent field). */
+  parentLabel: string | null;
+  parentOptions: ISelectOption[];
+  isParentsLoading?: boolean;
+  isEditMode?: boolean;
+  error?: ErrorType | null;
+  isPending?: boolean;
 }
 
-export interface ISegment {
-  id: string;
-  name: string;
-  description?: string;
-  status?: "ACTIVE" | "INACTIVE" | string;
-  categoryId: string;
-  categoryName?: string;
-  category?: {
-    id: string;
-    name: string;
-  };
-  createdAt: string;
-  actions?: string;
+export interface CategoryFormModalProps extends CategoryFormProps {
+  isOpen: boolean;
 }
 
-export interface ISubCategory {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string | null;
-  status?: "ACTIVE" | "INACTIVE" | string;
-  segmentId: string;
-  segmentName?: string;
-  categoryId?: string;
-  categoryName?: string;
-  category?: {
-    id: string;
-    name: string;
-    icon?: string | null;
-  };
-  createdAt: string;
-  actions?: string;
+export interface CategoryViewModalProps {
+  /** Row to show; undefined = closed. */
+  item?: IProductClassification;
+  onClose: () => void;
+}
+
+/** Form modal state: open + optional row (row = edit, none = create). */
+export interface CategoryFormState {
+  open: boolean;
+  item?: IProductClassification;
 }

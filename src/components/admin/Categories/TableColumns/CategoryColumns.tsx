@@ -1,95 +1,109 @@
+import RowActionsMenu from "@/src/components/shared/RowActionsMenu/RowActionsMenu";
 import StatusBadge from "@/src/components/shared/Status/Status";
-import { Button } from "@/src/components/ui/button";
 import { ColumnDef } from "@/src/components/ui/data-table";
+import { getClassificationIcon } from "@/src/constants/ecommerce/classificationIcons";
 import { StatusType } from "@/src/types/common/common";
-import { Pencil, Trash2, UserRound } from "lucide-react";
-import Image from "next/image";
-import { ICategory } from "../types";
+import {
+  IProductClassification,
+  PRODUCT_CLASSIFICATION_LEVEL_LABEL,
+  PRODUCT_CLASSIFICATION_PARENT_LEVEL,
+  ProductClassificationLevel,
+} from "@/src/types/productClassification";
+import { Eye, Pencil, Trash2 } from "lucide-react";
+
+export interface CategoryRowActions {
+  onView?: (item: IProductClassification) => void;
+  /** Omit to hide (no PRODUCT_CLASSIFICATION_UPDATE). */
+  onEdit?: (item: IProductClassification) => void;
+  /** Omit to hide (no PRODUCT_CLASSIFICATION_DELETE). */
+  onDelete?: (item: IProductClassification) => void;
+}
 
 export const GetCategoryColumns = (
-  onEdit?: (item: ICategory) => void,
-  onDelete?: (id: string) => void
-): ColumnDef<ICategory>[] => {
+  level: ProductClassificationLevel,
+  { onView, onEdit, onDelete }: CategoryRowActions = {}
+): ColumnDef<IProductClassification>[] => {
+  const parentLevel = PRODUCT_CLASSIFICATION_PARENT_LEVEL[level];
+
   return [
     {
       header: "Icon",
       accessorKey: "icon",
       cell: (value) => {
-        const icon = value as string | undefined;
+        const icon = getClassificationIcon(value as string | null);
         return icon ? (
-          <div className="w-9 h-9 border border-[#E6E6E6] flex items-center justify-center rounded-lg bg-light">
-            <Image src={icon} alt="icon" width={24} height={24} />
-          </div>
+          <span
+            title={icon.label}
+            className="inline-flex size-8 items-center justify-center rounded-md bg-light"
+          >
+            <icon.Icon className="size-4 text-primary" />
+          </span>
         ) : (
-          <div className="w-9 h-9 border border-[#E6E6E6] flex items-center justify-center rounded-lg bg-light">
-            <UserRound className="h-4 w-4 text-gray-400" />
-          </div>
-        );
-      },
-    },
-    {
-      header: "Name",
-      accessorKey: "name",
-    },
-    {
-      header: "Description",
-      accessorKey: "description",
-      cell: (value) => {
-        const desc = value as string | undefined;
-        return (
-          <span className="text-sm text-secondary-gary">{desc || "—"}</span>
-        );
-      },
-    },
-    {
-      header: "Parent Category",
-      accessorKey: "parentCategoryName",
-      cell: (_value, row) => {
-        const item = row as ICategory;
-        return (
-          <span>
-            {item.parentCategoryName || item.parentCategory?.name || "—"}
+          <span className="text-sm text-secondary-gary">
+            {(value as string | null) || "—"}
           </span>
         );
       },
     },
+    { header: "Name", accessorKey: "name" },
+    { header: "Code", accessorKey: "code" },
+    ...(parentLevel
+      ? [
+          {
+            header: PRODUCT_CLASSIFICATION_LEVEL_LABEL[parentLevel],
+            accessorKey: "parentName",
+            cell: (value) => (
+              <span className="text-sm text-secondary-gary">
+                {(value as string | null) || "—"}
+              </span>
+            ),
+          } satisfies ColumnDef<IProductClassification>,
+        ]
+      : []),
     {
       header: "Status",
-      accessorKey: "status",
-      cell: (value) => {
-        const normalizedStatus =
-          String(value || StatusType.INACTIVE).toUpperCase() ===
-          StatusType.ACTIVE
-            ? StatusType.ACTIVE
-            : StatusType.INACTIVE;
-
-        return <StatusBadge status={normalizedStatus} className="px-2 py-1" />;
-      },
+      accessorKey: "active",
+      cell: (value) => (
+        <StatusBadge
+          status={value ? StatusType.ACTIVE : StatusType.INACTIVE}
+          className="px-2 py-1"
+        />
+      ),
     },
     {
       header: "Action",
       accessorKey: "actions",
-      cell: (_value, row) => {
-        const item = row as ICategory;
-        return (
-          <div className="flex items-center justify-end gap-2 w-full">
-            <Button
-              className="w-9! min-h-9 border border-[#E6E6E6] flex items-center justify-center rounded-lg bg-light hover:bg-light"
-              size="sm"
-              onClick={() => onEdit?.(item)}
-            >
-              <Pencil className="h-4 w-4 text-secondary-foreground" />
-            </Button>
-            <Button
-              className="w-9! min-h-9 border border-red-200 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-100"
-              size="sm"
-              onClick={() => onDelete?.(item.id)}
-            >
-              <Trash2 className="h-4 w-4 text-red-500" />
-            </Button>
-          </div>
-        );
-      },
+      align: "right",
+      cell: (_value, row) => (
+        <RowActionsMenu
+          label={`Actions for ${row.name}`}
+          actions={[
+            {
+              key: "view",
+              label: "View",
+              icon: Eye,
+              onSelect: () => onView?.(row),
+              hidden: !onView,
+            },
+            {
+              key: "edit",
+              label: "Edit",
+              icon: Pencil,
+              onSelect: () => onEdit?.(row),
+              hidden: !onEdit,
+            },
+            {
+              key: "delete",
+              label: "Delete",
+              icon: Trash2,
+              variant: "danger",
+              onSelect: () => onDelete?.(row),
+              // Soft-deleted rows are already inactive.
+              hidden: !onDelete || !row.active,
+            },
+          ]}
+        />
+      ),
     },
   ];
 };

@@ -1,92 +1,74 @@
 import ErrorMessage from "@/src/components/shared/Errors/ErrorMessage";
+import ControlledIconSelectField from "@/src/components/shared/FromController/ControlledIconSelectField";
 import ControlledInputField from "@/src/components/shared/FromController/ControlledInputField";
-import ControlledSelectField from "@/src/components/shared/FromController/ControlledSelectField";
-import ControlledTextareaField from "@/src/components/shared/FromController/ControlledTextareaField";
-import ControlledToggleField from "@/src/components/shared/FromController/ControlledToggleField";
-import { FileUploadController } from "@/src/components/shared/FromController/FileUploadController";
+import ControlledSearchableSelectField from "@/src/components/shared/FromController/ControlledSearchableSelectField";
 import InputLabel from "@/src/components/shared/InputLabel";
 import SubmitButton from "@/src/components/shared/SubmitButton";
 import { Button } from "@/src/components/ui/button";
-import { ErrorType } from "@/src/types/common/common";
 import { useFormContext } from "react-hook-form";
-import { CategoryFormValues } from "../Schema/categorySchema";
+import { CategoryFormType } from "../Schema";
+import { CategoryFormProps } from "../types";
 
 export default function CategoryForm({
-  isEditMode = false,
   onSubmit,
   onCancel,
-  isPending = false,
-  parentCategoryOptions = [],
+  levelLabel,
+  parentLabel,
+  parentOptions,
+  isParentsLoading = false,
+  isEditMode = false,
   error,
-}: {
-  isEditMode?: boolean;
-  onSubmit: (data: CategoryFormValues) => void;
-  onCancel: () => void;
-  isPending?: boolean;
-  parentCategoryOptions?: { label: string; value: string }[];
-  error?: ErrorType;
-}) {
-  const { handleSubmit } = useFormContext<CategoryFormValues>();
+  isPending = false,
+}: CategoryFormProps) {
+  const methods = useFormContext<CategoryFormType>();
+  const parent = parentLabel?.toLowerCase();
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-5 mt-2">
-      {/* Name */}
+    <form
+      onSubmit={methods.handleSubmit(onSubmit)}
+      className="w-full space-y-5 mt-2"
+    >
       <div>
         <InputLabel label="Name" required />
         <ControlledInputField
           className="bg-light"
           name="name"
-          placeholder="Enter category name"
+          placeholder={`Enter ${levelLabel.toLowerCase()} name`}
         />
       </div>
 
-      {/* Description */}
-      <div>
-        <InputLabel label="Description" />
-        <ControlledTextareaField
-          className="bg-light"
-          name="description"
-          placeholder="Enter category description"
-        />
-      </div>
-
-      {/* Parent Category */}
-      <div>
-        <InputLabel label="Parent Category" required />
-        <ControlledSelectField
-          name="parentCategoryId"
-          placeholder="Select parent category"
-          options={parentCategoryOptions}
-          className="bg-light shadow-none"
-        />
-      </div>
-
-      {/* Icon Upload */}
-      <div>
-        <InputLabel label="Icon (SVG or PNG)" />
-        <FileUploadController
-          name="icon"
-          label="Upload icon"
-          accept={["image/svg+xml", "image/png"]}
-        />
-      </div>
-
-      {/* Status */}
-      <div>
-        <InputLabel label="Status" />
-        <div className="flex items-center gap-3">
-          <ControlledToggleField name="isActive" defaultChecked />
-          <span className="text-sm text-secondary-gary">Active / Inactive</span>
+      {parentLabel && (
+        <div>
+          <InputLabel label={parentLabel} required />
+          <ControlledSearchableSelectField
+            name="parentId"
+            options={parentOptions.map((o) => ({
+              label: o.label,
+              value: String(o.value),
+            }))}
+            disabled={isParentsLoading}
+            placeholder={isParentsLoading ? "Loading..." : `Select ${parent}`}
+            searchPlaceholder={`Search ${parent}...`}
+            emptyMessage={`No ${parent} found.`}
+          />
         </div>
+      )}
+
+      <div>
+        <InputLabel label="Icon" />
+        <ControlledIconSelectField
+          name="icon"
+          placeholder="Select icon (optional)"
+        />
       </div>
 
       <ErrorMessage error={error} />
 
-      {/* Actions */}
       <div className="flex items-center justify-end gap-4">
         <Button
           type="button"
           onClick={onCancel}
+          disabled={isPending}
           className="text-secondary-foreground bg-transparent hover:bg-transparent border shadow-none cursor-pointer"
         >
           Cancel

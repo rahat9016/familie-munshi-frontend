@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/src/lib/redux/hooks";
 import { LogOut, User } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { userMenuItems } from "../../../../utils/profileMenuItems";
+import { useProfileMenuItems } from "@/src/hooks/useProfileMenuItems";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,16 +20,9 @@ import ProfileDropdownSkeleton from "./Skeleton/ProfileDropdownSkeleton";
 export function ProfileDropdown() {
   const dispatch = useAppDispatch();
   const { userInformation, loading } = useAppSelector((state) => state.auth);
-  // const canAccessAdmin = useAppSelector(selectCanAccessAdmin);
-  // const canViewOwnOrders = useAppSelector(selectCanViewOwnOrders);
   const router = useRouter();
-
-  // const menuItems = canAccessAdmin
-  //   ? adminMenuItems
-  //   : userMenuItems.filter((item) => {
-  //       if (!canViewOwnOrders && item.href.includes("/orders")) return false;
-  //       return true;
-  //     });
+  // Admin (PLATFORM / BRANCH) → admin menu only; customers → account menu.
+  const { items: menuItems, isAdminPanelUser } = useProfileMenuItems();
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -92,6 +85,11 @@ export function ProfileDropdown() {
               <p className="text-xs text-gray-500 truncate">
                 {userInformation.email}
               </p>
+              {isAdminPanelUser && (
+                <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
+                  Administration
+                </span>
+              )}
             </div>
           </div>
         </DropdownMenuLabel>
@@ -100,7 +98,7 @@ export function ProfileDropdown() {
 
         {/* Menu Items */}
         <div className="py-1">
-          {userMenuItems.map((item) => (
+          {menuItems.map((item) => (
             <DropdownMenuItem
               key={item.href}
               onClick={() => router.push(item.href)}

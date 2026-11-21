@@ -17,13 +17,6 @@ export interface IBranch {
   actions?: string;
 }
 
-export interface IBranchListMeta {
-  currentPage: number;
-  lastPage: number;
-  perPage: number;
-  totalRecords: number;
-}
-
 /** Fields accepted by POST / PATCH (sent as multipart/form-data). */
 export interface IBranchPayload {
   name?: string;

@@ -74,7 +74,8 @@
   --secondary-gray: #545454;
   --secondary-foreground: #5c5c5c;
 
-  --light-blue: "#EFF3F4", --accent: oklch(0.96 0.04 205);
+  --light-blue: #eff3f4;
+  --accent: oklch(0.96 0.04 205);
   --accent-foreground: #05185a;
 
   --muted: oklch(0.96 0 0);
@@ -113,7 +114,8 @@
   --secondary-foreground: #5c5c5c;
   --secondary-gray: #545454;
 
-  --light-blue: "#EFF3F4", --accent: oklch(0.25 0.05 205);
+  --light-blue: #eff3f4;
+  --accent: oklch(0.25 0.05 205);
   --accent-foreground: oklch(0.985 0 0);
 
   --muted: oklch(0.25 0 0);

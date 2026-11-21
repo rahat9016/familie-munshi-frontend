@@ -2,7 +2,7 @@
 
 import { DataTable } from "@/src/components/ui/data-table";
 import { ITableProps } from "@/src/types/common/common";
-import { Shield } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 const RolesTable = <T,>({
   columns,
@@ -30,7 +30,7 @@ const RolesTable = <T,>({
       itemsPerPage={itemsPerPage}
       onPageChange={setCurrentPage}
       setItemsPerPage={setItemsPerPage}
-      icon={<Shield />}
+      icon={<ShieldCheck />}
       title="Roles"
       showSearch={showSearch}
       searchValue={search}

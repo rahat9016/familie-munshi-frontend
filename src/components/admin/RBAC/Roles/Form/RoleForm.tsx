@@ -1,35 +1,42 @@
 import ErrorMessage from "@/src/components/shared/Errors/ErrorMessage";
 import ControlledInputField from "@/src/components/shared/FromController/ControlledInputField";
+import ControlledTextareaField from "@/src/components/shared/FromController/ControlledTextareaField";
 import InputLabel from "@/src/components/shared/InputLabel";
 import SubmitButton from "@/src/components/shared/SubmitButton";
 import { Button } from "@/src/components/ui/button";
-import { ErrorType } from "@/src/types/common/common";
 import { useFormContext } from "react-hook-form";
-import { RoleFormValues } from "../Schema/roleSchema";
+import { RoleFormType } from "../Schema";
+import { RoleFormProps } from "../types";
 
 export default function RoleForm({
-  isEditMode = false,
   onSubmit,
   onCancel,
-  isPending = false,
   error,
-}: {
-  isEditMode?: boolean;
-  onSubmit: (data: RoleFormValues) => void;
-  onCancel: () => void;
-  isPending?: boolean;
-  error?: ErrorType;
-}) {
-  const { handleSubmit } = useFormContext<RoleFormValues>();
+  isPending = false,
+}: RoleFormProps) {
+  const methods = useFormContext<RoleFormType>();
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-5 mt-2">
+    <form
+      onSubmit={methods.handleSubmit(onSubmit)}
+      className="w-full space-y-5 mt-2"
+    >
       <div>
-        <InputLabel label="Role Name (UPPERCASE)" required />
-        <ControlledInputField className="bg-light" name="name" placeholder="e.g. BRANCH_ADMIN" />
-        <p className="text-xs text-gray-400 mt-1">
-          A label/tier; route + action permissions are assigned per user.
-        </p>
+        <InputLabel label="Name" required />
+        <ControlledInputField
+          className="bg-light"
+          name="name"
+          placeholder="Store Manager"
+        />
+      </div>
+
+      <div>
+        <InputLabel label="Description" />
+        <ControlledTextareaField
+          className="bg-light"
+          name="description"
+          placeholder="Manages store operations"
+        />
       </div>
 
       <ErrorMessage error={error} />
@@ -38,11 +45,12 @@ export default function RoleForm({
         <Button
           type="button"
           onClick={onCancel}
+          disabled={isPending}
           className="text-secondary-foreground bg-transparent hover:bg-transparent border shadow-none cursor-pointer"
         >
           Cancel
         </Button>
-        <SubmitButton isLoading={isPending} label={isEditMode ? "Update" : "Create"} />
+        <SubmitButton isLoading={isPending} label="Create" />
       </div>
     </form>
   );

@@ -1,7 +1,5 @@
-"use client";
+import Roles from "@/src/components/admin/RBAC/Roles/Roles";
 
-import RoleList from "@/src/components/admin/RBAC/Roles/RoleList/RoleList";
-
-export default function RbacRolesPage() {
-  return <RoleList />;
+export default function page() {
+  return <Roles />;
 }

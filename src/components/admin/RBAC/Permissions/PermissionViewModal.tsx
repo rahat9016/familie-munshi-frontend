@@ -1,84 +1,81 @@
 "use client";
 
+import DetailRow from "@/src/components/shared/DetailRow/DetailRow";
+import DetailRowsSkeleton from "@/src/components/shared/DetailRow/DetailRowsSkeleton";
+import ErrorMessage from "@/src/components/shared/Errors/ErrorMessage";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/src/components/ui/dialog";
-import { RbacUser } from "@/src/types/rbac/rbac";
+import { Skeleton } from "@/src/components/ui/skeleton";
+import { useGet } from "@/src/hooks/useGet";
+import { IPermission } from "@/src/types/permission";
+import { formatDateTime } from "@/src/utils/formatDateTime";
+import { KeyRound } from "lucide-react";
+import { PermissionViewModalProps } from "./types";
+import {
+  formatModule,
+  PERMISSIONS_QUERY_KEY,
+  permissionEndpoint,
+} from "./utils/permissionData";
 
-interface Props {
-  user: RbacUser | null;
-  onClose: () => void;
-}
-
-export default function PermissionViewModal({ user, onClose }: Props) {
-  const isOpen = !!user;
+export default function PermissionViewModal({
+  permissionId,
+  onClose,
+}: PermissionViewModalProps) {
+  // GET /permissions/{id}
+  const { data, isLoading, error } = useGet<IPermission>(
+    permissionEndpoint(permissionId ?? ""),
+    [PERMISSIONS_QUERY_KEY, "detail", permissionId ?? ""],
+    undefined,
+    { enabled: !!permissionId }
+  );
+  const permission = data?.data;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-white sm:max-w-lg max-h-[90vh] overflow-y-auto">
+    <Dialog open={!!permissionId} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="bg-white sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-secondary text-xl font-semibold">
-            Permission Details
+          <DialogTitle className="text-secondary text-xl font-semibold flex items-center gap-3">
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-light">
+              <KeyRound className="size-5 text-primary" />
+            </span>
+            {isLoading ? (
+              <Skeleton className="h-6 w-48" />
+            ) : (
+              <span className="truncate font-mono text-base">
+                {permission?.name ?? "Permission"}
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
 
-        {user && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <Detail label="Name" value={[user.firstName, user.lastName].filter(Boolean).join(" ")} />
-              <Detail label="Email" value={user.email} />
-              <Detail label="Role" value={user.role?.name ?? "—"} />
-              <Detail label="Branch" value={user.branch?.code ?? "—"} />
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                Routes & Actions
-              </p>
-              {user.role?.isSuperAdmin ? (
-                <p className="text-sm text-amber-600">Super admin — full access to everything.</p>
-              ) : (user.permissions?.length ?? 0) === 0 ? (
-                <p className="text-sm text-gray-400 italic">No permissions assigned.</p>
-              ) : (
-                <div className="space-y-2">
-                  {user.permissions.map((p) => (
-                    <div
-                      key={p.resource}
-                      className="flex items-center gap-2 border border-gray-100 rounded-lg px-3 py-2"
-                    >
-                      <span className="text-sm font-semibold text-gray-700 capitalize w-28">
-                        {p.resource}
-                      </span>
-                      <div className="flex flex-wrap gap-1">
-                        {p.actions.map((a) => (
-                          <span
-                            key={a}
-                            className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full"
-                          >
-                            {a}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        {isLoading ? (
+          <DetailRowsSkeleton rows={5} />
+        ) : error ? (
+          <ErrorMessage error={error} />
+        ) : permission ? (
+          <dl className="mt-2">
+            <DetailRow label="Code">
+              <span className="font-mono text-xs">{permission.name}</span>
+            </DetailRow>
+            <DetailRow label="Module">
+              {formatModule(permission.module)}
+            </DetailRow>
+            <DetailRow label="Description">
+              {permission.description || "—"}
+            </DetailRow>
+            <DetailRow label="Created">
+              {formatDateTime(permission.createdAt)}
+            </DetailRow>
+            <DetailRow label="ID">
+              <span className="font-mono text-xs">{permission.id}</span>
+            </DetailRow>
+          </dl>
+        ) : null}
       </DialogContent>
     </Dialog>
-  );
-}
-
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-[10px] font-semibold text-gray-400 uppercase">{label}</p>
-      <p className="text-sm text-gray-800">{value}</p>
-    </div>
   );
 }

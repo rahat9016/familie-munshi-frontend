@@ -1,5 +1,6 @@
 "use client";
 
+import DetailRow from "@/src/components/shared/DetailRow/DetailRow";
 import StatusBadge from "@/src/components/shared/Status/Status";
 import {
   Dialog,
@@ -13,19 +14,7 @@ import {
   PRODUCT_CLASSIFICATION_LEVEL_LABEL,
   PRODUCT_CLASSIFICATION_PARENT_LEVEL,
 } from "@/src/types/productClassification";
-import { ReactNode } from "react";
 import { CategoryViewModalProps } from "./types";
-
-function Row({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="grid grid-cols-3 gap-3 py-3 border-b last:border-b-0">
-      <dt className="text-sm text-secondary-gary">{label}</dt>
-      <dd className="col-span-2 text-sm text-secondary font-medium wrap-break-word">
-        {children}
-      </dd>
-    </div>
-  );
-}
 
 export default function CategoryViewModal({
   item,
@@ -58,17 +47,19 @@ export default function CategoryViewModal({
 
         {item && (
           <dl className="mt-2">
-            <Row label="Name">{item.name}</Row>
-            <Row label="Code">
+            <DetailRow label="Name">{item.name}</DetailRow>
+            <DetailRow label="Code">
               <span className="font-mono text-xs">{item.code}</span>
-            </Row>
-            <Row label="Level">{levelLabel || item.level}</Row>
+            </DetailRow>
+            <DetailRow label="Level">{levelLabel || item.level}</DetailRow>
             {parentLevel && (
-              <Row label={PRODUCT_CLASSIFICATION_LEVEL_LABEL[parentLevel]}>
+              <DetailRow
+                label={PRODUCT_CLASSIFICATION_LEVEL_LABEL[parentLevel]}
+              >
                 {item.parentName || "—"}
-              </Row>
+              </DetailRow>
             )}
-            <Row label="Icon">
+            <DetailRow label="Icon">
               {icon ? (
                 <span className="inline-flex items-center gap-2">
                   <icon.Icon className="size-4 text-primary" />
@@ -80,16 +71,16 @@ export default function CategoryViewModal({
               ) : (
                 item.icon || "—"
               )}
-            </Row>
-            <Row label="Status">
+            </DetailRow>
+            <DetailRow label="Status">
               <StatusBadge
                 status={item.active ? StatusType.ACTIVE : StatusType.INACTIVE}
                 className="px-2 py-1"
               />
-            </Row>
-            <Row label="ID">
+            </DetailRow>
+            <DetailRow label="ID">
               <span className="font-mono text-xs">{item.id}</span>
-            </Row>
+            </DetailRow>
           </dl>
         )}
       </DialogContent>

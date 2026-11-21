@@ -1,7 +1,5 @@
-"use client";
+import Users from "@/src/components/admin/RBAC/Users/Users";
 
-import UserList from "@/src/components/admin/RBAC/Users/UserList/UserList";
-
-export default function RbacUsersPage() {
-  return <UserList />;
+export default function page() {
+  return <Users />;
 }

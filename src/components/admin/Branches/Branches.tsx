@@ -6,11 +6,11 @@ import { usePagination } from "@/src/hooks/usePagination";
 import { usePatch } from "@/src/hooks/usePatch";
 import { usePost } from "@/src/hooks/usePost";
 import { useSearchDebounce } from "@/src/hooks/useSearchDebounce";
+import { IListMeta } from "@/src/types/common/common";
 import { selectHasPermission } from "@/src/lib/redux/features/rbac/rbacSelectors";
 import { useAppSelector } from "@/src/lib/redux/hooks";
 import {
   IBranch,
-  IBranchListMeta,
   IBranchPayload,
   isBranchActive,
 } from "@/src/types/branch";
@@ -159,7 +159,7 @@ export default function BranchesPage() {
   );
   const items = data?.data ?? [];
   const totalRecords =
-    (data?.meta as unknown as IBranchListMeta | undefined)?.totalRecords ?? 0;
+    (data?.meta as unknown as IListMeta | undefined)?.totalRecords ?? 0;
 
   const onSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     handleSearchChange(e);

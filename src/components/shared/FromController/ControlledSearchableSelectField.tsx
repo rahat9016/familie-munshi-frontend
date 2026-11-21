@@ -96,6 +96,11 @@ const ControlledSearchableSelectField: React.FC<
                     <CommandGroup>
                       {items.map((opt) => (
                         <CommandItem
+                          className={cn(
+                            "cursor-pointer data-[selected=true]:bg-primary/5 data-[selected=true]:text-primary",
+                            field.value === opt.value &&
+                              "bg-primary/10 font-medium text-primary data-[selected=true]:bg-primary/10"
+                          )}
                           key={opt.value}
                           value={opt.label}
                           onSelect={() => {
@@ -122,9 +127,7 @@ const ControlledSearchableSelectField: React.FC<
             </Popover>
 
             {error && (
-              <p className="mt-1 pl-2 text-xs text-rose-500">
-                {error.message}
-              </p>
+              <p className="mt-1 pl-2 text-xs text-rose-500">{error.message}</p>
             )}
           </div>
         );

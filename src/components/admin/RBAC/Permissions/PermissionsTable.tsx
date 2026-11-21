@@ -16,9 +16,7 @@ const PermissionsTable = <T,>({
   search = "",
   showSearch,
   handleSearchChange,
-  setIsModalOpen,
-  showCreateButton = false,
-  createTitle,
+  rightComponents,
 }: ITableProps<T>) => {
   return (
     <DataTable
@@ -35,9 +33,8 @@ const PermissionsTable = <T,>({
       showSearch={showSearch}
       searchValue={search}
       onSearchChange={handleSearchChange}
-      createTitle={createTitle}
-      IsCreate={showCreateButton}
-      setIsModalOpen={setIsModalOpen}
+      rightComponents={rightComponents}
+      isShowStatus={false}
     />
   );
 };

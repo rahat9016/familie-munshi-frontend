@@ -73,8 +73,18 @@ export interface ITableProps<T> {
   createTitle?: string;
   routeURL?: string;
   isShowStatus?: boolean;
+  /** Extra controls in the table toolbar (filters etc.). */
+  rightComponents?: React.ReactNode;
 }
 export interface ISelectOption {
   label: string;
   value: string | number;
+}
+
+/** `meta` of every paginated list endpoint. */
+export interface IListMeta {
+  currentPage: number;
+  lastPage: number;
+  perPage: number;
+  totalRecords: number;
 }

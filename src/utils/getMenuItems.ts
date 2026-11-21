@@ -71,14 +71,14 @@ export function getMenuItems(): MenuItem[] {
       icon: Users,
       children: [
         {
-          label: "Roles",
-          href: "/admin/rbac/roles",
-          permissions: [PERMISSION.ROLE_READ],
-        },
-        {
           label: "Users",
           href: "/admin/rbac/users",
           permissions: [PERMISSION.USER_READ],
+        },
+        {
+          label: "Roles",
+          href: "/admin/rbac/roles",
+          permissions: [PERMISSION.ROLE_READ],
         },
         {
           label: "Permissions",
@@ -102,12 +102,6 @@ type RouteRule = {
  * (write screens nested under a read-only list page).
  */
 const EXTRA_ROUTE_RULES: RouteRule[] = [
-  // /admin/rbac/permissions/create and /admin/rbac/permissions/[userId]
-  {
-    path: "/admin/rbac/permissions",
-    descendantsOnly: true,
-    permissions: [PERMISSION.ROLE_PERMISSION_MANAGE],
-  },
 ];
 
 /** Flatten the menu (+ extra rules) into path → required permissions. */

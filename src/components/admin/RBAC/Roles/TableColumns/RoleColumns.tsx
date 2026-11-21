@@ -1,73 +1,93 @@
-import { Button } from "@/src/components/ui/button";
+import RowActionsMenu from "@/src/components/shared/RowActionsMenu/RowActionsMenu";
+import StatusBadge from "@/src/components/shared/Status/Status";
 import { ColumnDef } from "@/src/components/ui/data-table";
-import { Pencil, Trash2 } from "lucide-react";
-import { RbacRoleItem } from "../types";
+import { StatusType } from "@/src/types/common/common";
+import { IRole } from "@/src/types/role";
+import { Eye, KeyRound } from "lucide-react";
 
-export const GetRoleColumns = (
-  onEdit?: (item: RbacRoleItem) => void,
-  onDelete?: (id: string) => void,
-): ColumnDef<RbacRoleItem>[] => {
-  return [
-    {
-      header: "Name",
-      accessorKey: "name",
-      cell: (value) => <span className="font-medium">{String(value)}</span>,
-    },
-    {
-      header: "Type",
-      accessorKey: "isBuiltIn",
-      cell: (_value, row) => {
-        const r = row as RbacRoleItem;
-        return r.isSuperAdmin ? (
-          <span className="text-[10px] font-bold bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full uppercase">
-            Super Admin
-          </span>
-        ) : r.isBuiltIn ? (
-          <span className="text-[10px] font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full uppercase">
-            Built-in
-          </span>
-        ) : (
-          <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase">
-            Custom
-          </span>
-        );
-      },
-    },
-    {
-      header: "Users",
-      accessorKey: "_count",
-      cell: (_value, row) => {
-        const r = row as RbacRoleItem;
-        return <span className="text-sm">{r._count?.users ?? 0}</span>;
-      },
-    },
-    {
-      header: "Action",
-      accessorKey: "actions",
-      cell: (_value, row) => {
-        const item = row as RbacRoleItem;
-        const locked = item.isBuiltIn || item.isSuperAdmin;
-        return (
-          <div className="flex items-center gap-2">
-            <Button
-              className="w-9! min-h-9 border border-[#E6E6E6] flex items-center justify-center rounded-lg bg-light hover:bg-light disabled:opacity-40"
-              size="sm"
-              disabled={locked}
-              onClick={() => onEdit?.(item)}
-            >
-              <Pencil className="h-4 w-4 text-secondary-foreground" />
-            </Button>
-            <Button
-              className="w-9! min-h-9 border border-red-200 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-100 disabled:opacity-40"
-              size="sm"
-              disabled={locked}
-              onClick={() => onDelete?.(item.id)}
-            >
-              <Trash2 className="h-4 w-4 text-red-500" />
-            </Button>
-          </div>
-        );
-      },
-    },
-  ];
-};
+export interface RoleRowActions {
+  onView?: (item: IRole) => void;
+  /** Omit to hide (no ROLE_PERMISSION_MANAGE). */
+  onAssignPermissions?: (item: IRole) => void;
+}
+
+export const GetRoleColumns = ({
+  onView,
+  onAssignPermissions,
+}: RoleRowActions = {}): ColumnDef<IRole>[] => [
+  {
+    header: "Name",
+    accessorKey: "name",
+    cell: (value) => (
+      <span className="text-sm font-medium">{(value as string) || "—"}</span>
+    ),
+  },
+  {
+    header: "Description",
+    accessorKey: "description",
+    cell: (value) => (
+      <span className="text-sm text-secondary-gary">
+        {(value as string | null) || "—"}
+      </span>
+    ),
+  },
+  {
+    header: "Scope",
+    accessorKey: "scope",
+    cell: (value) => (
+      <span className="text-[11px] font-semibold uppercase tracking-wide bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+        {(value as string | null) || "—"}
+      </span>
+    ),
+  },
+  {
+    header: "Type",
+    accessorKey: "isSystem",
+    cell: (value) =>
+      value ? (
+        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+          System
+        </span>
+      ) : (
+        <span className="text-xs font-medium text-secondary-gary bg-light px-2 py-0.5 rounded-full">
+          Custom
+        </span>
+      ),
+  },
+  {
+    header: "Status",
+    accessorKey: "isActive",
+    cell: (value) => (
+      <StatusBadge
+        status={value ? StatusType.ACTIVE : StatusType.INACTIVE}
+        className="px-2 py-1"
+      />
+    ),
+  },
+  {
+    header: "Action",
+    accessorKey: "actions",
+    align: "right",
+    cell: (_value, row) => (
+      <RowActionsMenu
+        label={`Actions for ${row.name}`}
+        actions={[
+          {
+            key: "view",
+            label: "View",
+            icon: Eye,
+            onSelect: () => onView?.(row),
+            hidden: !onView,
+          },
+          {
+            key: "permissions",
+            label: "Permissions",
+            icon: KeyRound,
+            onSelect: () => onAssignPermissions?.(row),
+            hidden: !onAssignPermissions,
+          },
+        ]}
+      />
+    ),
+  },
+];

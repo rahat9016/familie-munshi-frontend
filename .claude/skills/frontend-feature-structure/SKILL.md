@@ -59,7 +59,11 @@ export default function page() {
 - `<form onSubmit={methods.handleSubmit(onSubmit)}>`; use shared controls:
   `ControlledInputField`, `ControlledSwitchField`, `InputLabel`, `ErrorMessage`,
   `SubmitButton`, `Button` from `@/src/components/...`.
-- No API calls, no toasts, no router.
+- No API calls, no toasts, no router — exception: options from a paginated API endpoint use
+  `ControlledPaginatedSelectField` (server `search`, loads next page on scroll via
+  `useInfiniteGet`); pass `endpoint`, `queryKey`, `params`, and a module-level `getOption`.
+- Optional sections gated by a switch use `ControlledToggleField` (e.g. `assignBranch`) and
+  the dependent field is required via `.when("<toggle>", { is: true, then: required })`.
 
 ### `Schema/index.ts`
 ```ts

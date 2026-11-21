@@ -1,7 +1,5 @@
-"use client";
+import Permissions from "@/src/components/admin/RBAC/Permissions/Permissions";
 
-import PermissionList from "@/src/components/admin/RBAC/Permissions/PermissionList/PermissionList";
-
-export default function RbacPermissionsPage() {
-  return <PermissionList />;
+export default function page() {
+  return <Permissions />;
 }

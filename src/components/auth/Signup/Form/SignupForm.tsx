@@ -23,20 +23,11 @@ export default function SignupForm({
   const [showRePassword, setShowRePassword] = useState(false);
 
   return (
-    <form onSubmit={methods.handleSubmit(onSubmit)} className="w-full max-w-md">
+    <form
+      onSubmit={methods.handleSubmit(onSubmit)}
+      className="w-full max-w-100"
+    >
       <h2 className="text-[32px] font-semibold mb-6 text-primary">Sign Up</h2>
-
-      {/* Google Sign Up */}
-      <GoogleSignInButton label="Sign up with Google" />
-
-      {/* Divider */}
-      <div className="flex items-center gap-3 my-6">
-        <span className="flex-1 h-px bg-gray-200" />
-        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
-          or sign up with email
-        </span>
-        <span className="flex-1 h-px bg-gray-200" />
-      </div>
 
       <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-3">
         <div>
@@ -113,7 +104,19 @@ export default function SignupForm({
         {isPending ? "Loading..." : "Sign up"}
       </Button>
 
-      <p className="mt-4 text-left text-sm text-[#BDBDBD]">
+      {/* Divider */}
+      <div className="flex items-center gap-3 my-6">
+        <span className="flex-1 h-px bg-gray-200" />
+        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
+          or
+        </span>
+        <span className="flex-1 h-px bg-gray-200" />
+      </div>
+
+      {/* Google Sign Up — form is 400px wide to match Google's max button width */}
+      <GoogleSignInButton label="Sign up with Google" />
+
+      <p className="mt-6 text-left text-sm text-[#BDBDBD]">
         Already have an account?{" "}
         <Link
           href="/auth/login"

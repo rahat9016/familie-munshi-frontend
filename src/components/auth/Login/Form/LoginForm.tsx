@@ -22,23 +22,8 @@ export default function LoginForm({
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <form onSubmit={methods.handleSubmit(onSubmit)} className="w-full max-w-md">
+    <form onSubmit={methods.handleSubmit(onSubmit)} className="w-full max-w-100">
       <h2 className="text-[32px] font-semibold mb-6 text-primary">Log in</h2>
-
-      {/* Google Sign In */}
-      <GoogleSignInButton
-        label="Sign in with Google"
-        onSuccess={onGoogleSuccess}
-      />
-
-      {/* Divider */}
-      <div className="flex items-center gap-3 my-6">
-        <span className="flex-1 h-px bg-gray-200" />
-        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
-          or continue with email
-        </span>
-        <span className="flex-1 h-px bg-gray-200" />
-      </div>
 
       <div className="mb-6">
         <InputLabel label="Email" required />
@@ -68,7 +53,7 @@ export default function LoginForm({
         </div>
         <Link
           href="/forgot-password"
-          className="mt-3 block text-right text-primary-light font-semibold underline"
+          className="mt-2 block text-right text-xs font-normal text-primary-light underline"
         >
           Forgot password?
         </Link>
@@ -86,7 +71,22 @@ export default function LoginForm({
         {isPending ? "Loading..." : "Sign in"}
       </Button>
 
-      <p className="mt-4 text-left text-sm text-[#BDBDBD]">
+      {/* Divider */}
+      <div className="flex items-center gap-3 my-6">
+        <span className="flex-1 h-px bg-gray-200" />
+        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
+          or
+        </span>
+        <span className="flex-1 h-px bg-gray-200" />
+      </div>
+
+      {/* Google Sign In — form is 400px wide to match Google's max button width */}
+      <GoogleSignInButton
+        label="Sign in with Google"
+        onSuccess={onGoogleSuccess}
+      />
+
+      <p className="mt-6 text-left text-sm text-[#BDBDBD]">
         Don&apos;t have an account?{" "}
         <Link
           href="/auth/signup"

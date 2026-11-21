@@ -14,6 +14,9 @@ export default function LoginBanner() {
         alt="login"
         fill
         priority
+        // Banner is half the viewport on md+ and hidden below that.
+        sizes="(min-width: 768px) 50vw, 1px"
+        quality={90}
         className={`
           object-cover transition-opacity duration-700 ease-in-out
           ${loaded ? "opacity-100" : "opacity-0"}

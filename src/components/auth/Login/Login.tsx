@@ -1,4 +1,5 @@
 "use client";
+import AuthBackButton from "../shared/AuthBackButton";
 import { useAuth } from "@/src/hooks/useAuth";
 import { isAdminRole } from "@/src/utils/UserRoleEnum";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -63,7 +64,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
-      <div className="flex items-center justify-center px-6">
+      <div className="relative flex items-center justify-center px-6 py-16">
+        <AuthBackButton className="absolute top-4 left-4 md:top-6 md:left-6" />
         <FormProvider {...methods}>
           <LoginForm
             onSubmit={onSubmit}

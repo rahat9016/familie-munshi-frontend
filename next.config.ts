@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Next 16 only serves listed qualities; 90 is used by the auth banners.
+    qualities: [75, 90],
     dangerouslyAllowSVG: true,
     unoptimized: process.env.NODE_ENV === "development",
     remotePatterns: [

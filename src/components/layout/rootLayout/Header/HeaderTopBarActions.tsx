@@ -76,23 +76,27 @@ export default function HeaderTopBarActions({
           </span>
         )}
       </Link>
-<ProfileDropdown />
-      {/* {authLoading ? (
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200">
-          <div className="w-4 h-4 rounded-full bg-gray-200 animate-pulse" />
-          <div className="w-14 h-2.5 bg-gray-200 rounded animate-pulse" />
+{authLoading ? (
+        <div className="flex flex-col items-center gap-1 px-2 py-1.5">
+          <div className="w-5 h-5 rounded-full bg-gray-200 animate-pulse" />
+          <div className="hidden lg:block w-12 h-2.5 bg-gray-200 rounded animate-pulse" />
         </div>
       ) : userInformation?.firstName ? (
         <ProfileDropdown />
       ) : (
         <button
+          type="button"
           onClick={() => dispatch(openLoginModal())}
-          className="flex flex-col items-center gap-0.5 px-2 py-1.5 xl:px-3 text-gray-600 hover:text-primary transition-colors cursor-pointer group"
+          className="flex flex-col items-center gap-0.5 px-1 py-1.5 text-gray-600 hover:text-primary transition-colors cursor-pointer group"
+          aria-label="Sign in"
         >
-          <User size={20} className="group-hover:scale-110 transition-transform" />
-          <span className="hidden text-xs xl:block">Sign In</span>
+          <User
+            size={20}
+            className="group-hover:scale-110 transition-transform"
+          />
+          <span className="hidden text-xs lg:block">Sign In</span>
         </button>
-      )} */}
+      )}
     </div>
   );
 }

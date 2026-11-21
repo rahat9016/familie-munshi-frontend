@@ -87,7 +87,6 @@ export function ProfileDropdown() {
             )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 truncate">
-                Minhazur Rahman
                 {userInformation.firstName} {userInformation.lastName}
               </p>
               <p className="text-xs text-gray-500 truncate">

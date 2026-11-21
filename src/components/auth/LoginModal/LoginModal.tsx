@@ -7,7 +7,7 @@ import { closeLoginModal } from "@/src/lib/redux/features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "@/src/lib/redux/hooks";
 import { isAdminRole } from "@/src/utils/UserRoleEnum";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Eye, EyeOff, Lock, ShieldCheck, X } from "lucide-react";
+import { Eye, EyeOff, Lock, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -202,11 +202,6 @@ export default function LoginModal() {
           </Link>
         </p>
 
-        {/* Trust */}
-        <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
-          <ShieldCheck size={13} />
-          <span>Secure, encrypted connection</span>
-        </div>
       </div>
     </div>
   );

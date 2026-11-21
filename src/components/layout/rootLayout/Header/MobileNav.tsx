@@ -1,6 +1,9 @@
 "use client";
 
-import { logoutUser } from "@/src/lib/redux/features/auth/authSlice";
+import {
+  logoutUser,
+  openLoginModal,
+} from "@/src/lib/redux/features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "@/src/lib/redux/hooks";
 import {
   ChevronDown,
@@ -96,6 +99,7 @@ export default function MobileNav({ open, setOpen }: MobileNavProps) {
             )}
           </Link>
 
+          {isLoggedIn ? (
           <Link
             href="/account"
             className={`flex flex-col items-center justify-center gap-0.5 min-w-[60px] py-1 ${
@@ -119,6 +123,17 @@ export default function MobileNav({ open, setOpen }: MobileNavProps) {
               {isLoggedIn ? userInformation.firstName : "Account"}
             </span>
           </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => dispatch(openLoginModal())}
+              className="flex flex-col items-center justify-center gap-0.5 min-w-[60px] py-1 text-gray-500"
+              aria-label="Sign in"
+            >
+              <User size={22} strokeWidth={1.5} />
+              <span className="text-[10px] font-medium">Sign In</span>
+            </button>
+          )}
         </div>
       </div>
 

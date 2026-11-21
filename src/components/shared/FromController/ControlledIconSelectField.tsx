@@ -19,6 +19,7 @@ import {
   CommandList,
 } from "../../ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 
 interface ControlledIconSelectFieldProps {
   name: string;
@@ -124,38 +125,47 @@ const ControlledIconSelectField: React.FC<ControlledIconSelectFieldProps> = ({
                         {group.icons.map((opt) => {
                           const isSelected = field.value === opt.value;
                           return (
-                            <CommandItem
-                              key={opt.value}
-                              value={opt.value}
-                              keywords={[
-                                opt.label,
-                                group.group,
-                                ...(opt.keywords?.split(" ") ?? []),
-                              ]}
-                              title={opt.label}
-                              aria-label={opt.label}
-                              onSelect={() => {
-                                field.onChange(opt.value);
-                                setOpen(false);
-                              }}
-                              className={cn(
-                                "flex-col justify-center gap-1 h-16 px-1 py-1.5 border border-transparent text-center",
-                                isSelected &&
-                                  "border-primary bg-primary/10 data-[selected=true]:bg-primary/15"
-                              )}
-                            >
-                              <opt.Icon
-                                className={cn(
-                                  "size-5!",
-                                  isSelected
-                                    ? "text-primary"
-                                    : "text-secondary-foreground"
-                                )}
-                              />
-                              <span className="w-full truncate text-[10px] leading-tight">
+                            <Tooltip key={opt.value} delayDuration={150}>
+                              <TooltipTrigger asChild>
+                                <CommandItem
+                                  value={opt.value}
+                                  keywords={[
+                                    opt.label,
+                                    group.group,
+                                    ...(opt.keywords?.split(" ") ?? []),
+                                  ]}
+                                  aria-label={opt.label}
+                                  onSelect={() => {
+                                    field.onChange(opt.value);
+                                    setOpen(false);
+                                  }}
+                                  className={cn(
+                                    "flex-col justify-center gap-1 h-16 px-1 py-1.5 border border-transparent text-center",
+                                    isSelected &&
+                                      "border-primary bg-primary/10 data-[selected=true]:bg-primary/15"
+                                  )}
+                                >
+                                  <opt.Icon
+                                    className={cn(
+                                      "size-5!",
+                                      isSelected
+                                        ? "text-primary"
+                                        : "text-secondary-foreground"
+                                    )}
+                                  />
+                                  <span className="w-full truncate text-[10px] leading-tight">
+                                    {opt.label}
+                                  </span>
+                                </CommandItem>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="top"
+                                sideOffset={4}
+                                className="z-60 pointer-events-none"
+                              >
                                 {opt.label}
-                              </span>
-                            </CommandItem>
+                              </TooltipContent>
+                            </Tooltip>
                           );
                         })}
                       </CommandGroup>
@@ -166,9 +176,7 @@ const ControlledIconSelectField: React.FC<ControlledIconSelectFieldProps> = ({
             </Popover>
 
             {error && (
-              <p className="mt-1 pl-2 text-xs text-rose-500">
-                {error.message}
-              </p>
+              <p className="mt-1 pl-2 text-xs text-rose-500">{error.message}</p>
             )}
           </div>
         );

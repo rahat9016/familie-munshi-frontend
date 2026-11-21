@@ -14,17 +14,23 @@ export const selectCanAccessAdminPanel = (state: RootState) =>
 
 /**
  * Curried selector: can the user perform `action` on `module`?
- * e.g. selectCan("BRANCH", "CREATE"). Super admin always passes.
+ * e.g. selectCan("BRANCH", "CREATE"). Driven only by GET /permissions/me.
  */
 export const selectCan =
   (module: string, action: Action) =>
   (state: RootState): boolean =>
-    state.rbac.user.isSuperAdmin ||
-    (state.rbac.permissions[module.toUpperCase()]?.[action.toUpperCase()] ??
-      false);
+    state.rbac.permissions[module.toUpperCase()]?.[action.toUpperCase()] ??
+    false;
 
 /** Curried selector by raw permission name, e.g. "ROLE_PERMISSION_MANAGE". */
 export const selectHasPermission =
   (name: string) =>
   (state: RootState): boolean =>
-    state.rbac.user.isSuperAdmin || state.rbac.permissionNames.includes(name);
+    state.rbac.permissionNames.includes(name);
+
+/** Curried selector: does the user hold ANY of the given permission names? */
+export const selectHasAnyPermission =
+  (names: string[]) =>
+  (state: RootState): boolean =>
+    names.length === 0 ||
+    names.some((n) => state.rbac.permissionNames.includes(n));

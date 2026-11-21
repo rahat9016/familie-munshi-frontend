@@ -1,9 +1,10 @@
-import SubCategoryList from "@/src/components/admin/Categories/SubCategoryList/SubCategoryList";
+import ClassificationList from "@/src/components/admin/Categories/ClassificationList/ClassificationList";
+import { ProductClassificationLevel } from "@/src/types/ecommerce/productClassification";
 
 export default function page() {
   return (
     <div>
-      <SubCategoryList />
+      <ClassificationList level={ProductClassificationLevel.SUB_CATEGORY} />
     </div>
   );
 }

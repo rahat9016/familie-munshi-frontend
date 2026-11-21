@@ -1,9 +1,10 @@
-import ParentCategoryList from "@/src/components/admin/Categories/ParentCategoryList/ParentCategoryList";
+import ClassificationList from "@/src/components/admin/Categories/ClassificationList/ClassificationList";
+import { ProductClassificationLevel } from "@/src/types/ecommerce/productClassification";
 
 export default function page() {
   return (
     <div>
-      <ParentCategoryList />
+      <ClassificationList level={ProductClassificationLevel.PARENT_CATEGORY} />
     </div>
   );
 }

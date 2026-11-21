@@ -1,21 +1,30 @@
 import {
-  Calendar,
   FolderTree,
   LayoutDashboard,
-  Settings,
   ShieldCheck,
-  ShoppingCart,
-  Users,
   type LucideIcon,
 } from "lucide-react";
-import { PERMISSION_MODULE } from "../constants/auth/permissions";
+import { PERMISSION } from "../constants/auth/permissions";
+
+/**
+ * Admin navigation — the single source of truth for BOTH the header/sidebar
+ * menu AND admin route protection (see `getRequiredPermissions`).
+ *
+ * `permissions` = any-of list of permission names from GET /permissions/me.
+ *  - omitted on a leaf → always visible / allowed (e.g. Dashboard)
+ *  - on a group        → children inherit it unless they declare their own
+ *
+ * To expose a page, add it here with the permission the backend grants.
+ * Pages whose backend module does not exist yet (Styles/PLM, Orders,
+ * Customers, Settings, CMS, Career…) are intentionally absent: hidden from
+ * the menu and denied by the route guard until a permission is added.
+ */
 
 export interface MenuChild {
   label: string;
   href: string;
   matchRoutes?: string[];
-  /** Backend permission module gating this child (needs <MODULE>_READ); omit = always visible. */
-  resource?: string;
+  permissions?: string[];
 }
 
 export interface MenuItem {
@@ -25,75 +34,30 @@ export interface MenuItem {
   href?: string;
   matchRoutes?: string[];
   children?: MenuChild[];
-  /** Backend permission module gating this item/group (needs <MODULE>_READ); omit = always visible. */
-  resource?: string;
-  /** Only visible to super admin. */
-  superOnly?: boolean;
+  permissions?: string[];
 }
 
+const CLASSIFICATION_VIEW = [PERMISSION.PRODUCT_CLASSIFICATION_VIEW];
+
 export function getMenuItems(): MenuItem[] {
-  const menuItems: (MenuItem | false)[] = [
+  return [
     { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
 
-    // Dedicated Seasons & Styles PLM section
-    {
-      segment: "Style & PLM Management",
-      label: "Seasons & Styles (PLM)",
-      icon: Calendar,
-      resource: PERMISSION_MODULE.PRODUCT,
-      href: "/admin/styles",
-      matchRoutes: ["/admin/styles"],
-    },
-
-    // 4-Tier Category Hierarchy & Brand section
     {
       segment: "Category & Brand",
       label: "Category Hierarchy",
       icon: FolderTree,
-      resource: PERMISSION_MODULE.PRODUCT,
+      permissions: CLASSIFICATION_VIEW,
       children: [
-        {
-          label: "Group",
-          href: "/admin/group",
-        },
-        {
-          label: "Parent Category",
-          href: "/admin/parent-category",
-        },
-        {
-          label: "Category",
-          href: "/admin/category",
-        },
-        {
-          label: "Segment",
-          href: "/admin/segment",
-        },
-        {
-          label: "Sub Category",
-          href: "/admin/sub-category",
-        },
+        { label: "Group", href: "/admin/group" },
+        { label: "Parent Category", href: "/admin/parent-category" },
+        { label: "Category", href: "/admin/category" },
+        { label: "Segment", href: "/admin/segment" },
+        { label: "Sub Category", href: "/admin/sub-category" },
         { label: "Brand List", href: "/admin/brands" },
       ],
     },
 
-    {
-      segment: "Order Management",
-      label: "Orders",
-      icon: ShoppingCart,
-      resource: PERMISSION_MODULE.ORDER,
-      children: [
-        { label: "All Orders", href: "/admin/orders" },
-        { label: "Return & Refund", href: "/admin/orders/return-refund" },
-        { label: "Transactions", href: "/admin/orders/transactions" },
-      ],
-    },
-    {
-      segment: "User Management",
-      label: "Users",
-      icon: Users,
-      href: "/admin/users",
-      resource: PERMISSION_MODULE.CUSTOMER,
-    },
     {
       segment: "Access Control",
       label: "Branch RBAC",
@@ -102,66 +66,130 @@ export function getMenuItems(): MenuItem[] {
         {
           label: "Branches",
           href: "/admin/rbac/branches",
-          resource: PERMISSION_MODULE.BRANCH,
+          permissions: [PERMISSION.BRANCH_LIST, PERMISSION.BRANCH_READ],
         },
         {
           label: "Roles",
           href: "/admin/rbac/roles",
-          resource: PERMISSION_MODULE.ROLE,
-        },
-        {
-          label: "Actions",
-          href: "/admin/rbac/actions",
-          resource: PERMISSION_MODULE.ACTION,
+          permissions: [PERMISSION.ROLE_READ],
         },
         {
           label: "Users",
           href: "/admin/rbac/users",
-          resource: PERMISSION_MODULE.USER,
+          permissions: [PERMISSION.USER_READ],
         },
         {
           label: "Permissions",
           href: "/admin/rbac/permissions",
-          resource: PERMISSION_MODULE.PERMISSION,
+          permissions: [PERMISSION.PERMISSION_READ],
         },
       ],
     },
-    {
-      label: "Settings",
-      icon: Settings,
-      href: "/admin/settings",
-      superOnly: true,
-    },
   ];
+}
 
-  return menuItems.filter(Boolean) as MenuItem[];
+type RouteRule = {
+  path: string;
+  permissions: string[];
+  /** Match only pages BELOW `path` (not `path` itself). */
+  descendantsOnly?: boolean;
+};
+
+/**
+ * Routes that need a stricter permission than their menu entry
+ * (write screens nested under a read-only list page).
+ */
+const EXTRA_ROUTE_RULES: RouteRule[] = [
+  // /admin/rbac/permissions/create and /admin/rbac/permissions/[userId]
+  {
+    path: "/admin/rbac/permissions",
+    descendantsOnly: true,
+    permissions: [PERMISSION.ROLE_PERMISSION_MANAGE],
+  },
+];
+
+/** Flatten the menu (+ extra rules) into path → required permissions. */
+function buildRouteRules(): RouteRule[] {
+  const rules: RouteRule[] = [{ path: "/admin", permissions: [] }];
+
+  for (const item of getMenuItems()) {
+    const own = item.permissions ?? [];
+    if (item.href) {
+      for (const path of [item.href, ...(item.matchRoutes ?? [])]) {
+        rules.push({ path, permissions: own });
+      }
+    }
+    for (const child of item.children ?? []) {
+      const perms = child.permissions ?? own;
+      for (const path of [child.href, ...(child.matchRoutes ?? [])]) {
+        rules.push({ path, permissions: perms });
+      }
+    }
+  }
+
+  return [...rules, ...EXTRA_ROUTE_RULES];
+}
+
+const ROUTE_RULES = buildRouteRules();
+
+/**
+ * Permissions required to open `pathname` (any-of).
+ *  - longest matching configured prefix wins, so nested pages
+ *    (e.g. /admin/rbac/permissions/123) inherit their parent's rule
+ *  - `/admin` matches exactly only
+ *  - returns `null` for routes not in the config → deny by default
+ */
+export function getRequiredPermissions(pathname: string): string[] | null {
+  const path = pathname.replace(/\/+$/, "") || "/";
+  let best: RouteRule | null = null;
+  let bestScore = -1;
+
+  for (const rule of ROUTE_RULES) {
+    const isDescendant = path.startsWith(`${rule.path}/`);
+    const matches =
+      rule.path === "/admin"
+        ? path === "/admin"
+        : rule.descendantsOnly
+          ? isDescendant
+          : path === rule.path || isDescendant;
+    // Longer prefix wins; a descendants-only rule beats the same-path rule.
+    const score = rule.path.length * 2 + (rule.descendantsOnly ? 1 : 0);
+    if (matches && score > bestScore) {
+      best = rule;
+      bestScore = score;
+    }
+  }
+
+  return best ? best.permissions : null;
+}
+
+/** true when no permission is required or the user holds any of them. */
+export function hasAnyPermission(
+  required: string[] | undefined,
+  granted: ReadonlySet<string>
+): boolean {
+  return (
+    !required || required.length === 0 || required.some((p) => granted.has(p))
+  );
 }
 
 /**
- * Filter menu items by the user's RBAC access.
- * `can(resource)` → true if the user may see that resource (super admin
- * bypasses; otherwise any granted action counts).
- *  - leaf/group with a `resource` → hidden unless `can(resource)`.
- *  - group children with a `resource` → individually filtered.
- *  - a group with no remaining children is dropped.
+ * Filter menu by the user's granted permission names.
+ *  - item/child shown when it (or its group) permission is granted
+ *  - a group with no remaining children is dropped
  */
 export function filterMenuByAccess(
   items: MenuItem[],
-  can: (resource: string) => boolean,
-  isSuperAdmin = false
+  granted: ReadonlySet<string>
 ): MenuItem[] {
   const out: MenuItem[] = [];
   for (const item of items) {
-    if (item.superOnly && !isSuperAdmin) continue;
-    if (item.resource && !can(item.resource)) continue;
-
     if (item.children) {
-      const children = item.children.filter(
-        (c) => !c.resource || can(c.resource)
+      const children = item.children.filter((c) =>
+        hasAnyPermission(c.permissions ?? item.permissions, granted)
       );
-      if (children.length === 0) continue;
-      out.push({ ...item, children });
-    } else {
+      if (children.length > 0) out.push({ ...item, children });
+    } else if (hasAnyPermission(item.permissions, granted)) {
       out.push(item);
     }
   }

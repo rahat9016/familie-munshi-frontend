@@ -1,9 +1,10 @@
-import GroupList from "@/src/components/admin/Categories/GroupList/GroupList";
+import ClassificationList from "@/src/components/admin/Categories/ClassificationList/ClassificationList";
+import { ProductClassificationLevel } from "@/src/types/ecommerce/productClassification";
 
 export default function page() {
   return (
     <div>
-      <GroupList />
+      <ClassificationList level={ProductClassificationLevel.GROUP} />
     </div>
   );
 }

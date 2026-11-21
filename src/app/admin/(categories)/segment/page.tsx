@@ -1,9 +1,10 @@
-import SegmentList from "@/src/components/admin/Categories/SegmentList/SegmentList";
+import ClassificationList from "@/src/components/admin/Categories/ClassificationList/ClassificationList";
+import { ProductClassificationLevel } from "@/src/types/ecommerce/productClassification";
 
 export default function page() {
   return (
     <div>
-      <SegmentList />
+      <ClassificationList level={ProductClassificationLevel.SEGMENT} />
     </div>
   );
 }

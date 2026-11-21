@@ -1,4 +1,5 @@
 import AdminAccessGuard from "@/src/components/admin/AdminAccessGuard";
+import AdminRouteGuard from "@/src/components/admin/AdminRouteGuard";
 import DashboardHeader from "@/src/components/layout/dashboardLayout/DashboardHeader";
 import { ReactNode } from "react";
 
@@ -11,7 +12,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <div className="w-full bg-white">
               <DashboardHeader />
             </div>
-            <div className="p-3 sm:p-4 w-full ">{children}</div>
+            <div className="p-3 sm:p-4 w-full ">
+              <AdminRouteGuard>{children}</AdminRouteGuard>
+            </div>
           </div>
         </div>
       </div>

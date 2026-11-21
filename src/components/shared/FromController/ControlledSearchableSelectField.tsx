@@ -60,7 +60,7 @@ const ControlledSearchableSelectField: React.FC<
 
         return (
           <div className="w-full">
-            <Popover open={open} onOpenChange={setOpen}>
+            <Popover modal open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
                   type="button"

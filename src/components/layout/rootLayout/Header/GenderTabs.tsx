@@ -1,10 +1,14 @@
 "use client";
 
+import GenderTabsSkeleton from "./Skeleton/GenderTabsSkeleton";
 import { useGender } from "./useGender";
 
-/** Gender parent-category pills (API-driven; drive the category nav). */
+/** Root classification pills (Men / Women / Kids — API-driven; drive the category nav). */
 export default function GenderTabs() {
-  const { gender, setGender, genders } = useGender();
+  const { gender, setGender, genders, rootsLoading } = useGender();
+
+  if (rootsLoading) return <GenderTabsSkeleton />;
+
   return (
     <div className="flex items-center gap-1.5">
       {genders.map((tab) => {

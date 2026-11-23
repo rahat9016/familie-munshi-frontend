@@ -7,7 +7,6 @@ import {
 import { selectCanAccessAdminPanel } from "@/src/lib/redux/features/rbac/rbacSelectors";
 import { useAppDispatch, useAppSelector } from "@/src/lib/redux/hooks";
 import {
-  ChevronDown,
   Home,
   LayoutGrid,
   LogOut,
@@ -19,24 +18,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { type Gender, type NavLink } from "./navLinks";
+import MobileGenderSection from "./MobileGenderSection";
+import { type Gender } from "./navLinks";
+import MobileNavSkeleton from "./Skeleton/MobileNavSkeleton";
 import { useGender } from "./useGender";
-
-const slug = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
-/** Subcategories for an expandable category (generic). */
-function subsFor(label: string): { label: string; href: string }[] {
-  const c = slug(label);
-  return [
-    { label: `Shop all ${label}`, href: `/categories?c=${c}` },
-    { label: "New in", href: `/categories?c=${c}&filter=new` },
-    { label: "Best sellers", href: `/categories?c=${c}&filter=best` },
-    { label: "Sale", href: `/categories?c=${c}&filter=sale` },
-  ];
-}
-
-const isExpandable = (l: NavLink) => l.label !== "NEW IN" && !l.isHighlighted;
 
 interface MobileNavProps {
   open: boolean;
@@ -53,12 +38,11 @@ export default function MobileNav({ open, setOpen }: MobileNavProps) {
   // PLATFORM / BRANCH users go to the admin panel, not the customer account.
   const isAdminPanelUser = useAppSelector(selectCanAccessAdminPanel);
   const accountHref = isAdminPanelUser ? "/admin" : "/account";
-  const { gender, genders, navByGender } = useGender();
+  const { gender, roots, rootsLoading } = useGender();
 
   // null = follow the active gender; "" = explicitly collapsed; else a gender.
   const [openGender, setOpenGender] = useState<Gender | null>(null);
   const shownGender = openGender === null ? gender : openGender;
-  const [openCat, setOpenCat] = useState<string | null>(null);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const close = () => setOpen(false);
@@ -164,85 +148,25 @@ export default function MobileNav({ open, setOpen }: MobileNavProps) {
           <LayoutGrid size={18} className="text-primary" /> Categories
         </div>
 
-        {/* Nested accordion: gender → category → subcategory */}
+        {/* Nested accordion: root → parent category → category → segment */}
         <nav className="flex-1 overflow-y-auto p-2">
-          {genders.map((g) => {
-            const genderOpen = shownGender === g;
-            return (
-              <div key={g} className="border-b border-gray-100 last:border-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOpenGender(genderOpen ? "" : g);
-                    setOpenCat(null);
-                  }}
-                  className="flex w-full items-center justify-between px-3 py-3 text-base font-bold text-secondary"
-                >
-                  {g}
-                  <ChevronDown
-                    size={18}
-                    className={`text-gray-400 transition-transform ${genderOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
-
-                {genderOpen && (
-                  <div className="pb-2">
-                    {(navByGender[g] ?? []).map((cat) => {
-                      const key = `${g}-${cat.label}`;
-                      const catOpen = openCat === key;
-                      const expandable = isExpandable(cat);
-
-                      return (
-                        <div key={cat.label}>
-                          <div className="flex items-center">
-                            <Link
-                              href={cat.href}
-                              onClick={close}
-                              className={`flex-1 px-4 py-2 text-sm ${
-                                cat.isHighlighted
-                                  ? "font-bold text-red-500"
-                                  : "text-secondary"
-                              }`}
-                            >
-                              {cat.label}
-                            </Link>
-                            {expandable && (
-                              <button
-                                type="button"
-                                onClick={() => setOpenCat(catOpen ? null : key)}
-                                className="px-3 py-2 text-gray-400"
-                                aria-label="expand"
-                              >
-                                <ChevronDown
-                                  size={16}
-                                  className={`transition-transform ${catOpen ? "rotate-180" : ""}`}
-                                />
-                              </button>
-                            )}
-                          </div>
-
-                          {expandable && catOpen && (
-                            <div className="ml-3 border-l border-gray-100 pl-3">
-                              {subsFor(cat.label).map((s) => (
-                                <Link
-                                  key={s.label}
-                                  href={s.href}
-                                  onClick={close}
-                                  className="block px-3 py-2 text-sm text-gray-600 hover:text-primary"
-                                >
-                                  {s.label}
-                                </Link>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {rootsLoading ? (
+            <MobileNavSkeleton rows={3} />
+          ) : (
+            roots.map((root) => {
+              const genderOpen = shownGender === root.name;
+              return (
+                <MobileGenderSection
+                  key={root.id}
+                  rootId={root.id}
+                  name={root.name}
+                  open={genderOpen}
+                  onToggle={() => setOpenGender(genderOpen ? "" : root.name)}
+                  onNavigate={close}
+                />
+              );
+            })
+          )}
         </nav>
 
         <div className="p-4 border-t">

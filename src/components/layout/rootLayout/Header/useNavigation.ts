@@ -1,49 +1,104 @@
 "use client";
 
+import { getClassificationIcon } from "@/src/constants/ecommerce/classificationIcons";
 import { useGet } from "@/src/hooks/useGet";
-import {
-  GENDERS_FALLBACK,
-  INavGroup,
-  mapNavigation,
-  NavLink,
-  navByGenderFallback,
-  NAVIGATION_API_ENABLED,
-  NAVIGATION_ENDPOINT,
-  type Gender,
-} from "./navLinks";
+import type {
+  IProductClassification,
+  IProductClassificationTreeNode,
+} from "@/src/types/productClassification";
+import { Tag } from "lucide-react";
+import { useMemo } from "react";
+import { defaultMegaMenu, type MegaMenuData } from "./megaMenuData";
+import type { Gender, NavLink } from "./navLinks";
 
-export interface NavigationData {
-  genders: Gender[];
-  navByGender: Record<Gender, NavLink[]>;
-  isLoading: boolean;
-  /** true while the static fallback is being shown (no API data yet). */
-  isFallback: boolean;
+const ROOTS_ENDPOINT = "/product-classifications/roots";
+const TREE_ENDPOINT = "/product-classifications/tree";
+const NAV_QUERY_KEY = "product-classifications-nav";
+/** Header nav rarely changes — avoid refetching on every mount/focus. */
+const NAV_STALE_TIME = 5 * 60 * 1000;
+
+/** Lead "NEW IN" link shown first under every root. */
+const NEW_IN: NavLink = { label: "NEW IN", href: "/categories?filter=new" };
+
+const hrefFor = (id: string) => `/categories?c=${id}`;
+const iconFor = (icon: string | null) =>
+  getClassificationIcon(icon)?.Icon ?? Tag;
+
+/**
+ * Sub-categories of a category, flattened across its segments (a segment
+ * with no children stands in for itself).
+ */
+const leavesOf = (category: IProductClassificationTreeNode) =>
+  category.children.flatMap((segment) =>
+    segment.children.length ? segment.children : [segment]
+  );
+
+/**
+ * Tree (root → parent category → category → segment → sub-category) →
+ * header links. Each parent category becomes a nav link, its categories the
+ * mega-menu columns, and their sub-categories the column items.
+ */
+function mapTreeToNav(tree: IProductClassificationTreeNode): NavLink[] {
+  return [
+    NEW_IN,
+    ...tree.children.map<NavLink>((parent) => {
+      const menu: MegaMenuData | undefined = parent.children.length
+        ? {
+            columns: parent.children.map((category) => ({
+              id: category.id,
+              heading: category.name,
+              items: leavesOf(category).map((leaf) => ({
+                label: leaf.name,
+                href: hrefFor(leaf.id),
+                icon: iconFor(leaf.icon),
+              })),
+            })),
+            promo: defaultMegaMenu.promo,
+          }
+        : undefined;
+
+      return {
+        id: parent.id,
+        label: parent.name,
+        href: hrefFor(parent.id),
+        menu,
+      };
+    }),
+  ];
+}
+
+/** Root classifications (Men / Women / Kids) — drive the gender tabs. */
+export function useNavigationRoots() {
+  const { data, isLoading } = useGet<IProductClassification[]>(
+    ROOTS_ENDPOINT,
+    [NAV_QUERY_KEY, "roots"],
+    undefined,
+    { staleTime: NAV_STALE_TIME }
+  );
+
+  const roots = useMemo(
+    () => (data?.data ?? []).filter((r) => r.active),
+    [data]
+  );
+  const genders: Gender[] = useMemo(() => roots.map((r) => r.name), [roots]);
+
+  return { roots, genders, isLoading };
 }
 
 /**
- * Fetches the gender/category navigation tree from the API and normalizes it.
- * Falls back to the static nav while loading or if the API returns nothing,
- * so the header never renders empty. React Query dedupes by query key, so
- * calling this from multiple components shares one request.
+ * Category tree for one root. Disabled until `rootId` is known; React Query
+ * dedupes by key so every header part shares one request per root.
  */
-export function useNavigation(): NavigationData {
-  const { data, isLoading } = useGet<INavGroup[]>(
-    NAVIGATION_ENDPOINT,
-    ["navigation"],
+export function useClassificationTree(rootId?: string) {
+  const { data, isLoading } = useGet<IProductClassificationTreeNode>(
+    `${TREE_ENDPOINT}/${rootId}`,
+    [NAV_QUERY_KEY, "tree", rootId ?? ""],
     undefined,
-    { enabled: NAVIGATION_API_ENABLED }
+    { enabled: !!rootId, staleTime: NAV_STALE_TIME }
   );
 
-  const groups = data?.data;
+  const tree = data?.data;
+  const navLinks = useMemo(() => (tree ? mapTreeToNav(tree) : []), [tree]);
 
-  if (groups && groups.length > 0) {
-    return { ...mapNavigation(groups), isLoading, isFallback: false };
-  }
-
-  return {
-    genders: GENDERS_FALLBACK,
-    navByGender: navByGenderFallback,
-    isLoading,
-    isFallback: true,
-  };
+  return { navLinks, isLoading };
 }

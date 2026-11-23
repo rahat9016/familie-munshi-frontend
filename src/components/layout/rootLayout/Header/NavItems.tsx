@@ -7,14 +7,13 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useGender } from "./useGender";
 import MegaMenu from "./MegaMenu";
-import { getMegaMenu } from "./megaMenuData";
+import NavItemsSkeleton from "./Skeleton/NavItemsSkeleton";
 import NavSearch from "./NavSearch";
 import { useHeaderSearch } from "./useHeaderSearch";
 
 export default function NavItems() {
   const pathname = usePathname();
-  const { gender, navByGender } = useGender();
-  const navLinks = navByGender[gender] ?? [];
+  const { navLinks, navLoading } = useGender();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -22,6 +21,12 @@ export default function NavItems() {
   const [canRight, setCanRight] = useState(false);
 
   const search = useHeaderSearch();
+
+  // Keyed by classification id, so switching root auto-closes the panel
+  // (the old id isn't in the new root's links).
+  const openLink = openMenu
+    ? navLinks.find((l) => (l.id ?? l.label) === openMenu)
+    : undefined;
 
   // Toggle arrows based on scroll position: left hidden at start, right hidden at end.
   const updateArrows = () => {
@@ -63,6 +68,10 @@ export default function NavItems() {
       <div className="container flex items-center gap-3 py-0.5">
         {/* Category links + scroll arrows */}
         <div className="flex min-w-0 flex-1 items-center">
+          {navLoading ? (
+            <NavItemsSkeleton />
+          ) : (
+          <>
           {canLeft && (
             <button
               type="button"
@@ -79,18 +88,19 @@ export default function NavItems() {
             onScroll={updateArrows}
             className="flex min-w-0 flex-1 items-center gap-0 -ml-1 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-          {navLinks.map(({ label, href, isHighlighted }) => {
+          {navLinks.map(({ id, label, href, isHighlighted, menu }) => {
+            const key = id ?? label;
             const isActive =
               pathname === href || pathname.startsWith(href.split("?")[0] + "/");
-            const isOpen = openMenu === label;
-            // Only real categories get a mega-menu (not "NEW IN" or highlighted).
-            const expandable = label !== "NEW IN" && !isHighlighted;
+            const isOpen = openMenu === key;
+            // Only categories with children get a mega-menu.
+            const expandable = !!menu?.columns.length && !isHighlighted;
 
             return (
               <Link
-                key={label}
+                key={key}
                 href={href}
-                onMouseEnter={() => (expandable ? open(label) : close())}
+                onMouseEnter={() => (expandable ? open(key) : close())}
                 className={`relative px-1 py-1.5 text-[14px] transition-colors whitespace-nowrap 2xl:text-sm after:absolute after:left-1 after:right-1 after:-bottom-px after:h-0.5 after:rounded-full after:bg-primary after:transition-transform after:duration-200 ${
                   isOpen ? "after:scale-x-100" : "after:scale-x-0"
                 } ${
@@ -117,6 +127,8 @@ export default function NavItems() {
               <ChevronRight size={18} />
             </button>
           )}
+          </>
+          )}
         </div>
 
         {/* Search on the right — fixed width */}
@@ -138,10 +150,10 @@ export default function NavItems() {
 
       {/* Animated mega-menu panel on hover */}
       <AnimatePresence>
-        {openMenu && (
+        {openLink?.menu && (
           <MegaMenu
-            data={getMegaMenu(openMenu)}
-            menuKey={openMenu}
+            data={openLink.menu}
+            menuKey={openLink.label}
             onNavigate={close}
           />
         )}

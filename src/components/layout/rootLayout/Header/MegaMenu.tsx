@@ -28,8 +28,8 @@ export default function MegaMenu({ data, menuKey, onNavigate }: MegaMenuProps) {
         transition={{ duration: 0.15 }}
         className="container grid grid-cols-4 gap-6 pt-2 pb-0 min-[1024px]:max-[1480px]:pt-1"
       >
-        {data.columns.map((col) => (
-          <div key={col.heading}>
+        {data.columns.map((col, colIdx) => (
+          <div key={col.id ?? `${col.heading}-${colIdx}`}>
             <h4
               className={`text-base font-bold text-gray-400 pb-0 ${
                 menuKey === "Custom-Teamwear" || col.items.length <= 5 ? "text-left" : "text-center"
@@ -46,7 +46,7 @@ export default function MegaMenu({ data, menuKey, onNavigate }: MegaMenuProps) {
               }
             >
               {col.items.map(({ label, href, icon: Icon, highlight }) => (
-                <li key={label} className="">
+                <li key={href} className="">
                   <Link
                     href={href}
                     onClick={onNavigate}

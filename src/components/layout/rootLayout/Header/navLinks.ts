@@ -1,17 +1,22 @@
+import type { MegaMenuData } from "./megaMenuData";
+
 /**
- * Navigation source: types, API contract, mapper, and static fallback.
- * The header nav (genders + their category links) is API-driven via
- * `useNavigation`; this file holds the shapes and the fallback used until
- * the backend responds.
+ * Navigation shapes + static category list. The header itself is API-driven
+ * (`useNavigation`: /product-classifications/roots + /tree/{id}); the static
+ * data below only feeds the footer and admin mock data.
  */
 
 /** A gender is just its display name (e.g. "Women"). Dynamic from API. */
 export type Gender = string;
 
 export interface NavLink {
+  /** Classification id (absent for synthetic links like "NEW IN"). */
+  id?: string;
   label: string;
   href: string;
   isHighlighted?: boolean;
+  /** Mega-menu content; links without it are not expandable. */
+  menu?: MegaMenuData;
 }
 
 const slugify = (label: string) =>
@@ -25,7 +30,7 @@ const cat = (label: string): NavLink => ({
 /** Lead "NEW IN" link shown first under every gender. */
 const NEW_IN: NavLink = { label: "NEW IN", href: "/categories?filter=new" };
 
-// ── Static fallback (used until the API responds) ──────────────────────────
+// ── Static data (footer + admin mocks) ─────────────────────────────────────
 const CATEGORIES: NavLink[] = [
   NEW_IN,
   cat("Custom-Teamwear"),
@@ -51,50 +56,3 @@ export const navByGenderFallback: Record<Gender, NavLink[]> = {
 
 /** Backwards-compatible flat list. */
 export const navLinks = CATEGORIES;
-
-// ── API contract (assumed; swap endpoint/shape when backend is ready) ──────
-export const NAVIGATION_ENDPOINT = "/categories/navigation";
-
-/**
- * Backend has no navigation endpoint yet — keep the request off and render
- * the static fallback. Flip to true once `NAVIGATION_ENDPOINT` exists.
- */
-export const NAVIGATION_API_ENABLED = false;
-
-export interface INavCategory {
-  id: string;
-  name: string;
-  slug: string;
-  isHighlighted?: boolean;
-}
-
-/** A top-level gender group with its child categories. */
-export interface INavGroup {
-  id: string;
-  name: string;
-  slug: string;
-  children: INavCategory[];
-}
-
-/** Normalize the API navigation tree into genders + per-gender link lists. */
-export function mapNavigation(groups: INavGroup[]): {
-  genders: Gender[];
-  navByGender: Record<Gender, NavLink[]>;
-} {
-  const genders: Gender[] = [];
-  const navByGender: Record<Gender, NavLink[]> = {};
-
-  for (const group of groups) {
-    genders.push(group.name);
-    navByGender[group.name] = [
-      NEW_IN,
-      ...group.children.map((c) => ({
-        label: c.name,
-        href: `/categories?c=${c.slug}`,
-        isHighlighted: c.isHighlighted,
-      })),
-    ];
-  }
-
-  return { genders, navByGender };
-}

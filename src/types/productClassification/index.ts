@@ -74,3 +74,11 @@ export interface IUpdateProductClassificationBody {
   icon?: string;
   level?: ProductClassificationLevel;
 }
+
+/** Node of GET /product-classifications/tree/{rootId} (recursive). */
+export interface IProductClassificationTreeNode {
+  id: string;
+  name: string;
+  icon: string | null;
+  children: IProductClassificationTreeNode[];
+}

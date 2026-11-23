@@ -43,6 +43,7 @@ export interface MegaItem {
 }
 
 export interface MegaColumn {
+  id?: string;
   heading: string;
   items: MegaItem[];
 }

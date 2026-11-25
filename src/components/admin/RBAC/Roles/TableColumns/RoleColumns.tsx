@@ -68,26 +68,28 @@ export const GetRoleColumns = ({
     header: "Action",
     accessorKey: "actions",
     align: "right",
-    cell: (_value, row) => (
-      <RowActionsMenu
-        label={`Actions for ${row.name}`}
-        actions={[
-          {
-            key: "view",
-            label: "View",
-            icon: Eye,
-            onSelect: () => onView?.(row),
-            hidden: !onView,
-          },
-          {
-            key: "permissions",
-            label: "Permissions",
-            icon: KeyRound,
-            onSelect: () => onAssignPermissions?.(row),
-            hidden: !onAssignPermissions,
-          },
-        ]}
-      />
-    ),
+    // System roles are built-in and read-only: no row actions.
+    cell: (_value, row) =>
+      row.isSystem ? null : (
+        <RowActionsMenu
+          label={`Actions for ${row.name}`}
+          actions={[
+            {
+              key: "view",
+              label: "View",
+              icon: Eye,
+              onSelect: () => onView?.(row),
+              hidden: !onView,
+            },
+            {
+              key: "permissions",
+              label: "Permissions",
+              icon: KeyRound,
+              onSelect: () => onAssignPermissions?.(row),
+              hidden: !onAssignPermissions,
+            },
+          ]}
+        />
+      ),
   },
 ];

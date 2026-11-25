@@ -72,17 +72,17 @@ export function getMenuItems(): MenuItem[] {
       children: [
         {
           label: "Users",
-          href: "/admin/rbac/users",
+          href: "/admin/user-management/users",
           permissions: [PERMISSION.USER_READ],
         },
         {
           label: "Roles",
-          href: "/admin/rbac/roles",
+          href: "/admin/user-management/roles",
           permissions: [PERMISSION.ROLE_READ],
         },
         {
           label: "Permissions",
-          href: "/admin/rbac/permissions",
+          href: "/admin/user-management/permissions",
           permissions: [PERMISSION.PERMISSION_READ],
         },
       ],
@@ -131,7 +131,7 @@ const ROUTE_RULES = buildRouteRules();
 /**
  * Permissions required to open `pathname` (any-of).
  *  - longest matching configured prefix wins, so nested pages
- *    (e.g. /admin/rbac/permissions/123) inherit their parent's rule
+ *    (e.g. /admin/user-management/permissions/123) inherit their parent's rule
  *  - `/admin` matches exactly only
  *  - returns `null` for routes not in the config → deny by default
  */

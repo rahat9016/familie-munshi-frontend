@@ -36,10 +36,10 @@ export const RESOURCES: ResourceDef[] = [
   { key: "customers", label: "Customers", route: "/admin/users", actions: ["READ", "UPDATE", "EXPORT"] },
   { key: "payments", label: "Payments", route: "/admin/finance", actions: ["READ", "EXPORT"] },
   { key: "branches", label: "Branches", route: "/admin/branches", actions: CRUD },
-  { key: "users", label: "Users", route: "/admin/rbac/users", actions: CRUD },
-  { key: "roles", label: "Roles", route: "/admin/rbac/roles", actions: CRUD },
-  { key: "actions", label: "Actions", route: "/admin/rbac/actions", actions: CRUD },
-  { key: "permissions", label: "Permissions", route: "/admin/rbac/permissions", actions: CRUD },
+  { key: "users", label: "Users", route: "/admin/user-management/users", actions: CRUD },
+  { key: "roles", label: "Roles", route: "/admin/user-management/roles", actions: CRUD },
+  { key: "actions", label: "Actions", route: "/admin/user-management/actions", actions: CRUD },
+  { key: "permissions", label: "Permissions", route: "/admin/user-management/permissions", actions: CRUD },
   { key: "reports", label: "Reports", route: "/admin/dashboard", actions: ["READ", "EXPORT"] },
 ];
 

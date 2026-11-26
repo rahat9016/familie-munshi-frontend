@@ -12,15 +12,11 @@ import {
 import { setPermissionsFromRole } from "../lib/redux/features/permission/permissionSlice";
 import { selectRbacUser } from "../lib/redux/features/rbac/rbacSelectors";
 import { useAppDispatch, useAppSelector } from "../lib/redux/hooks";
-
-/** GET /users/me response `data`. */
-interface IMyProfile {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  active: boolean;
-}
+import {
+  IMyProfile,
+  USERS_ME_ENDPOINT,
+  USERS_ME_QUERY_KEY,
+} from "../types/user";
 
 export const UserFetcher = () => {
   const dispatch = useAppDispatch();
@@ -48,8 +44,8 @@ export const UserFetcher = () => {
   const isLoggedIn = !!accessToken;
 
   const { data, isSuccess, isError, isFetching } = useGet<IMyProfile>(
-    "/users/me",
-    ["users-me"],
+    USERS_ME_ENDPOINT,
+    USERS_ME_QUERY_KEY,
     undefined,
     {
       enabled: isLoggedIn,
@@ -75,6 +71,7 @@ export const UserFetcher = () => {
           email: profile.email,
           firstName: profile.firstName,
           lastName: profile.lastName,
+          phone: profile.phone ?? null,
           status: profile.active ? "ACTIVE" : "INACTIVE",
           role: roleName,
         })

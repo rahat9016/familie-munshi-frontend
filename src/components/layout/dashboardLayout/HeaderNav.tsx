@@ -29,7 +29,10 @@ function isChildMatch(
 }
 
 function isItemActive(item: MenuItem, pathname: string) {
-  const isActiveParent = item.href ? pathname === item.href : false;
+  // Leaf items also stay active on nested pages (e.g. /admin/styles/material).
+  const isActiveParent = item.href
+    ? isChildMatch(item.href, item.matchRoutes, pathname)
+    : false;
   const isActiveChild =
     item.children?.some((c) => isChildMatch(c.href, c.matchRoutes, pathname)) ??
     false;

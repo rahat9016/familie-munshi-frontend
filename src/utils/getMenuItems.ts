@@ -2,6 +2,7 @@ import {
   Building2,
   FolderTree,
   LayoutDashboard,
+  Shirt,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -16,9 +17,9 @@ import { PERMISSION } from "../constants/auth/permissions";
  *  - on a group        → children inherit it unless they declare their own
  *
  * To expose a page, add it here with the permission the backend grants.
- * Pages whose backend module does not exist yet (Styles/PLM, Orders,
- * Customers, Settings, CMS, Career…) are intentionally absent: hidden from
- * the menu and denied by the route guard until a permission is added.
+ * Pages whose backend module does not exist yet (Orders, Customers,
+ * Settings, CMS, Career…) are intentionally absent: hidden from the menu and
+ * denied by the route guard until a permission is added.
  */
 
 export interface MenuChild {
@@ -43,6 +44,16 @@ const CLASSIFICATION_VIEW = [PERMISSION.PRODUCT_CLASSIFICATION_VIEW];
 export function getMenuItems(): MenuItem[] {
   return [
     { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
+
+    // Styles / PLM (mock data) — no backend permission yet, so visible to
+    // every admin. Add `permissions` once the backend module exists.
+    // Nested pages (/admin/styles/...) inherit this rule.
+    {
+      segment: "Style & PLM",
+      label: "Styles",
+      icon: Shirt,
+      href: "/admin/styles",
+    },
 
     {
       segment: "Category & Brand",

@@ -104,7 +104,7 @@ instance.interceptors.request.use(
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
     } catch {
-      logout();
+      logout({ revoke: false });
       return Promise.reject({
         statusCode: 401,
         message: "Session expired. Please login again.",
@@ -164,7 +164,7 @@ instance.interceptors.response.use(
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
         return instance(originalRequest);
       } catch {
-        logout();
+        logout({ revoke: false });
         return Promise.reject({
           statusCode: 401,
           message: "Session expired. Please login again.",

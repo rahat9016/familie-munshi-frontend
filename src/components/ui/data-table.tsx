@@ -21,6 +21,10 @@ import {
   TableRow,
 } from "./table";
 
+/** Table search box: full width on small screens, wide fixed width from lg. */
+const SEARCH_BOX_CLASS =
+  "flex items-center border border-light-dark px-3 rounded-[6px] h-11 w-full lg:w-[26rem] xl:w-[32rem]";
+
 // Types
 export interface ColumnDef<T> {
   header: ReactNode;
@@ -229,7 +233,7 @@ export function DataTable<T>({
                     {tableTitle}
                   </Paragraph>
                 )}
-                <div className="flex  items-center gap-3">
+                <div className="flex w-full lg:w-auto items-center gap-3">
                   {tabs.length > 0 ? (
                     <div className="overflow-hidden rounded-sm border border-light-dark h-11">
                       {tabs.map((tab) => (
@@ -251,7 +255,7 @@ export function DataTable<T>({
                     </div>
                   ) : (
                     showSearch && (
-                      <div className="flex items-center border border-light-dark px-3 rounded-[6px] h-11 w-full max-w-60">
+                      <div className={SEARCH_BOX_CLASS}>
                         <Search className="text-[#BDBDBD]" />
                         <Input
                           placeholder={searchPlaceholder}
@@ -264,9 +268,9 @@ export function DataTable<T>({
                   )}
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex w-full lg:w-auto items-center gap-3">
                   {tabs.length > 0 && showSearch && (
-                    <div className="flex items-center border border-light-dark px-3 rounded-[6px] h-11 w-full max-w-60">
+                    <div className={SEARCH_BOX_CLASS}>
                       <Search className="text-[#BDBDBD]" />
                       <Input
                         placeholder={searchPlaceholder}

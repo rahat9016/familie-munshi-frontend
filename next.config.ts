@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
     // Next 16 only serves listed qualities; 90 is used by the auth banners.
     qualities: [75, 90],
     dangerouslyAllowSVG: true,
+    // Default "attachment" makes /_next/image look like a file download
+    // (filename="x.webp"), which office/school web filters block as a
+    // forbidden file type. Next still sends its sandbox CSP
+    // (script-src 'none'; sandbox), so inline SVGs cannot run scripts.
+    contentDispositionType: "inline",
     unoptimized: process.env.NODE_ENV === "development",
     remotePatterns: [
       {

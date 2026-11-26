@@ -1,9 +1,9 @@
 "use client";
 
+import AdminPanelSkeleton from "@/src/components/layout/dashboardLayout/Skeleton/AdminPanelSkeleton";
 import { useRbacPermissions } from "@/src/hooks/useRbacPermissions";
 import { selectCanAccessAdminPanel } from "@/src/lib/redux/features/rbac/rbacSelectors";
 import { useAppSelector } from "@/src/lib/redux/hooks";
-import { Loader2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 
@@ -34,14 +34,7 @@ export default function AdminAccessGuard({
     }
   }, [hasToken, denied, pathname, router]);
 
-  if (!hasToken || !loaded || !canAccessAdmin) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center text-gray-400">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        <span className="text-sm">Checking access…</span>
-      </div>
-    );
-  }
+  if (!hasToken || !loaded || !canAccessAdmin) return <AdminPanelSkeleton />;
 
   return <>{children}</>;
 }

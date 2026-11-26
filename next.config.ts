@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
         pathname: "/uploads/**",
       },
       {
+        // Production API — uploaded media (logos, product/profile images).
+        protocol: "https",
+        hostname: "api.familiemunshi.de",
+        pathname: "/**",
+      },
+      {
         protocol: "https",
         hostname: "picsum.photos",
       },

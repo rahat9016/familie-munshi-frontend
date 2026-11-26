@@ -10,10 +10,13 @@ export default function DashboardHeader() {
   return (
     <header className="bg-white border-b border-skeleton">
       <div className="h-16 flex items-center px-3 md:px-6 gap-3 md:gap-6">
+        {/* Same logo as the storefront header: full size on desktop,
+            compact (icon only on phones) below lg. */}
+        <BrandLogo href="/admin" className="hidden lg:flex shrink-0" />
         <BrandLogo
           size="sm"
           href="/admin"
-          className="shrink-0"
+          className="lg:hidden shrink-0"
           wordmarkClassName="hidden sm:flex"
         />
 

@@ -22,10 +22,10 @@ export default function AdminPanelSkeleton() {
       <div className="bg-white border-b border-skeleton">
         <div className="h-16 flex items-center px-3 md:px-6 gap-3 md:gap-6">
           <div className="flex items-center gap-2.5 shrink-0">
-            <Skeleton className="size-11 rounded-full" />
+            <Skeleton className="size-11 lg:size-16 rounded-full" />
             <div className="hidden sm:block space-y-1.5">
-              <Skeleton className="h-5 w-36" />
-              <Skeleton className="h-2.5 w-40" />
+              <Skeleton className="h-5 w-36 lg:h-7 lg:w-52" />
+              <Skeleton className="h-2.5 w-40 lg:w-52" />
             </div>
           </div>
 

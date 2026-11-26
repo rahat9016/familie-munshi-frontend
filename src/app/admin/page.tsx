@@ -8,12 +8,12 @@ import TownHallBoard from "@/src/components/admin/TownHall/TownHallBoard";
 
 export default function AdminDashboardPage() {
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="space-y-3">
       <DashboardWelcome />
 
       <TownHallBoard />
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
         <div className="xl:col-span-2 min-w-0">
           <MagicBoard />
         </div>

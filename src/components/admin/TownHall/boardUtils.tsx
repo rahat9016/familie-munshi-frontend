@@ -31,12 +31,12 @@ export function BoardCard({
 }: BoardCardProps) {
   return (
     <section
-      className={`bg-white rounded-2xl border border-light-dark shadow-sm overflow-hidden ${className}`}
+      className={`bg-white rounded-lg border border-light-dark shadow-sm overflow-hidden ${className}`}
     >
       <header className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-b border-light-dark">
         <div className="flex items-center gap-3 min-w-0">
           <div
-            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-linear-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}
+            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-md bg-linear-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}
           >
             <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
@@ -61,7 +61,7 @@ export function BoardCard({
 /** Label + mono value chip used for Article Number / PO Number */
 export function KeyChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center rounded-lg overflow-hidden border border-light-dark shrink-0">
+    <div className="flex items-center rounded-md overflow-hidden border border-light-dark shrink-0">
       <span className="px-2.5 py-1.5 text-[11px] font-medium text-secondary-foreground bg-light">
         {label}
       </span>

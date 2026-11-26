@@ -77,7 +77,11 @@ export default function HeaderSearchBar() {
       {showDropdown && (
         <div className="absolute left-0 right-0 top-full mt-1.5 z-50 overflow-hidden rounded-lg border border-skeleton bg-white shadow-xl">
           {results.length > 0 ? (
-            <ul id={LISTBOX_ID} role="listbox" className="max-h-80 overflow-y-auto py-1">
+            <ul
+              id={LISTBOX_ID}
+              role="listbox"
+              className="max-h-80 overflow-y-auto py-1"
+            >
               {results.map((page, index) => {
                 const isActive = index === highlighted;
                 const isCurrent = pathname === page.href;

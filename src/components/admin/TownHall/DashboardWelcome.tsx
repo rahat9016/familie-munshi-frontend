@@ -50,7 +50,7 @@ export default function DashboardWelcome() {
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="relative overflow-hidden rounded-2xl border border-light-dark bg-linear-to-r from-primary to-amber-400 px-5 sm:px-7 py-5 sm:py-6 shadow-sm"
+      className="relative overflow-hidden rounded-lg border border-light-dark bg-linear-to-r from-primary to-amber-400 px-5 sm:px-7 py-5 sm:py-6 shadow-sm"
     >
       <div className="absolute -top-16 -right-10 h-52 w-52 rounded-full bg-white/15" />
       <div className="absolute -bottom-24 right-24 h-52 w-52 rounded-full bg-white/10" />

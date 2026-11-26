@@ -77,7 +77,7 @@ export default function TownHallBoard() {
   const { netRevenue, netProfit, year, month } = townHallSummary;
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-5">
+    <div className="grid grid-cols-1 xl:grid-cols-4 gap-3">
       <BoardCard
         title="Town Hall Board"
         subtitle="Quarterly sales, payments and tax overview"
@@ -92,7 +92,7 @@ export default function TownHallBoard() {
         />
       </BoardCard>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3">
         <SummaryCard
           label="Net Revenue"
           value={netRevenue}
@@ -130,7 +130,7 @@ function SummaryCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="relative overflow-hidden bg-white rounded-2xl border border-light-dark shadow-sm p-4 sm:p-5 flex flex-col justify-between"
+      className="relative overflow-hidden bg-white rounded-lg border border-light-dark shadow-sm p-4 sm:p-5 flex flex-col justify-between"
     >
       <div
         className={`absolute -top-8 -right-8 w-24 h-24 rounded-full bg-linear-to-br ${gradient} opacity-10`}
@@ -140,7 +140,7 @@ function SummaryCard({
           {label}
         </p>
         <div
-          className={`w-9 h-9 rounded-xl bg-linear-to-br ${gradient} flex items-center justify-center shadow-sm`}
+          className={`w-9 h-9 rounded-md bg-linear-to-br ${gradient} flex items-center justify-center shadow-sm`}
         >
           <Icon className="w-4 h-4 text-white" />
         </div>

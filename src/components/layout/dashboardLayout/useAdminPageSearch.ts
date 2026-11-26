@@ -95,9 +95,7 @@ export function useAdminPageSearch() {
       case "ArrowUp":
         e.preventDefault();
         if (results.length)
-          setActiveIndex(
-            (highlighted - 1 + results.length) % results.length
-          );
+          setActiveIndex((highlighted - 1 + results.length) % results.length);
         break;
       case "Enter": {
         e.preventDefault();

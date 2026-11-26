@@ -10,14 +10,8 @@ const nextConfig: NextConfig = {
     // forbidden file type. Next still sends its sandbox CSP
     // (script-src 'none'; sandbox), so inline SVGs cannot run scripts.
     contentDispositionType: "inline",
-    unoptimized: process.env.NODE_ENV === "development",
+    unoptimized: true,
     remotePatterns: [
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "8001",
-        pathname: "/uploads/**",
-      },
       {
         // Production API — uploaded media (logos, product/profile images).
         protocol: "https",

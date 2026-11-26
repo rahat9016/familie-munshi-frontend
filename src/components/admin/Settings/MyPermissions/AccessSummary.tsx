@@ -5,7 +5,7 @@ import { countPermissions } from "./utils/myPermissionsData";
 
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-md border border-light-dark bg-white px-4 py-3 min-w-0">
+    <div className="rounded-lg border border-light-dark bg-white px-4 py-3 min-w-0">
       <p className="text-xs text-secondary-gary">{label}</p>
       <div className="mt-1 text-sm font-semibold text-secondary-dark truncate">
         {value}
@@ -38,9 +38,18 @@ export default function AccessSummary({
   return (
     <div className="space-y-3">
       {isSuperAdmin && (
-        <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
-          <ShieldCheck className="w-4 h-4 shrink-0" />
-          You are a super admin — you have full access to every module.
+        <div className="flex items-center gap-3 rounded-lg border border-light-dark bg-white px-4 py-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <ShieldCheck className="size-4.5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-secondary-dark">
+              Super admin
+            </p>
+            <p className="text-xs text-secondary-gary">
+              Full access to every module.
+            </p>
+          </div>
         </div>
       )}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

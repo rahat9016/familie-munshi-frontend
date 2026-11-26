@@ -28,11 +28,13 @@ export default function SettingsSection({
     >
       <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-md bg-light flex items-center justify-center shrink-0">
-            <Icon className="w-4.5 h-4.5 text-secondary" />
+          <div className="w-9 h-9 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Icon className="w-4.5 h-4.5" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-secondary">{title}</h2>
+            <h2 className="text-base font-semibold text-secondary-dark">
+              {title}
+            </h2>
             {description && (
               <p className="text-xs text-muted-foreground mt-0.5">
                 {description}

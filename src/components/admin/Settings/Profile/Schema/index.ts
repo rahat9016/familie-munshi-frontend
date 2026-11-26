@@ -5,6 +5,8 @@ import {
 } from "../utils/profileFormData";
 
 export const profileSchema = Yup.object({
+  /** Read-only — shown in the form, never sent (API can't change email). */
+  email: Yup.string().default(""),
   firstName: Yup.string()
     .trim()
     .required("First name is required")

@@ -2,21 +2,20 @@
 
 import ErrorMessage from "@/src/components/shared/Errors/ErrorMessage";
 import ControlledInputField from "@/src/components/shared/FromController/ControlledInputField";
+import { FileUploadController } from "@/src/components/shared/FromController/FileUploadController";
 import InputLabel from "@/src/components/shared/InputLabel";
 import SubmitButton from "@/src/components/shared/SubmitButton";
 import { Button } from "@/src/components/ui/button";
-import { Lock, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import SettingsSection from "../../SettingsSection";
 import { ProfileFormType } from "../Schema";
 import { ProfileFormProps } from "../types";
-import ProfilePictureField from "./ProfilePictureField";
+import { PROFILE_PICTURE_TYPES } from "../utils/profileFormData";
 
 export default function ProfileForm({
   onSubmit,
   onReset,
-  email,
-  initials,
   error,
   isPending = false,
 }: ProfileFormProps) {
@@ -31,7 +30,15 @@ export default function ProfileForm({
         icon={UserRound}
       >
         <div className="space-y-5">
-          <ProfilePictureField initials={initials} />
+          <div>
+            <InputLabel label="Profile picture" />
+            <FileUploadController
+              name="profilePicture"
+              label="Upload picture (JPG, PNG, WEBP · max 2MB)"
+              accept={PROFILE_PICTURE_TYPES}
+              imgClassName="object-cover"
+            />
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -55,13 +62,13 @@ export default function ProfileForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <InputLabel label="Email" />
-              <div
-                className="flex h-11 items-center gap-2 rounded-md border border-light-silver bg-light px-3 text-sm text-secondary-gary"
-                title="Email cannot be changed"
-              >
-                <span className="truncate flex-1">{email || "—"}</span>
-                <Lock className="w-3.5 h-3.5 shrink-0" />
-              </div>
+              {/* Read-only: the API doesn't allow changing email. */}
+              <ControlledInputField
+                className="bg-light"
+                name="email"
+                type="email"
+                disabled
+              />
             </div>
             <div>
               <InputLabel label="Phone" />

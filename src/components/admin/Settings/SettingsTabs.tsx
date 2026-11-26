@@ -1,14 +1,7 @@
 "use client";
 
-import { selectIsSuperAdmin } from "@/src/lib/redux/features/rbac/rbacSelectors";
-import { useAppSelector } from "@/src/lib/redux/hooks";
 import { cn } from "@/src/lib/utils";
-import {
-  KeyRound,
-  SlidersHorizontal,
-  UserRound,
-  type LucideIcon,
-} from "lucide-react";
+import { KeyRound, UserRound, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -16,7 +9,6 @@ interface SettingsTab {
   label: string;
   href: string;
   icon: LucideIcon;
-  superAdminOnly?: boolean;
 }
 
 export const SETTINGS_BASE_PATH = "/admin/settings";
@@ -28,12 +20,6 @@ export const SETTINGS_TABS: SettingsTab[] = [
     href: `${SETTINGS_BASE_PATH}/permissions`,
     icon: KeyRound,
   },
-  {
-    label: "Platform",
-    href: `${SETTINGS_BASE_PATH}/platform`,
-    icon: SlidersHorizontal,
-    superAdminOnly: true,
-  },
 ];
 
 const isTabActive = (href: string, pathname: string) =>
@@ -43,8 +29,6 @@ const isTabActive = (href: string, pathname: string) =>
 
 export default function SettingsTabs() {
   const pathname = usePathname();
-  const isSuperAdmin = useAppSelector(selectIsSuperAdmin);
-  const tabs = SETTINGS_TABS.filter((t) => !t.superAdminOnly || isSuperAdmin);
 
   return (
     <nav
@@ -52,7 +36,7 @@ export default function SettingsTabs() {
       className="overflow-x-auto scrollbar-hide"
     >
       <div className="flex w-max min-w-full items-center gap-1 rounded-lg border border-light-dark bg-white p-1.5">
-        {tabs.map((tab) => {
+        {SETTINGS_TABS.map((tab) => {
           const isActive = isTabActive(tab.href, pathname);
           return (
             <Link

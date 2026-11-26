@@ -1,6 +1,10 @@
 import ModulePermissionList from "./ModulePermissionList";
 import { BranchAccessListProps } from "./types";
-import { countPermissions, filterModules } from "./utils/myPermissionsData";
+import {
+  countPermissions,
+  filterModules,
+  humanize,
+} from "./utils/myPermissionsData";
 
 /** Per-branch roles + permissions (branch-scoped users). */
 export default function BranchAccessList({ branches }: BranchAccessListProps) {
@@ -13,10 +17,10 @@ export default function BranchAccessList({ branches }: BranchAccessListProps) {
         >
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-secondary-dark truncate">
+              <h3 className="text-[15px] font-semibold text-secondary-dark truncate">
                 {b.branchName || "Branch"}
                 {b.branchCode && (
-                  <span className="ml-2 font-mono text-xs font-normal text-secondary-gary">
+                  <span className="ml-2 text-xs font-normal text-secondary-gary">
                     {b.branchCode}
                   </span>
                 )}
@@ -29,9 +33,10 @@ export default function BranchAccessList({ branches }: BranchAccessListProps) {
               {(b.roles ?? []).map((role) => (
                 <span
                   key={role}
+                  title={role}
                   className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
                 >
-                  {role}
+                  {humanize(role)}
                 </span>
               ))}
             </div>

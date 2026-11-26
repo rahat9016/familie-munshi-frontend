@@ -115,7 +115,6 @@ type RouteRule = {
 const EXTRA_ROUTE_RULES: RouteRule[] = [
   // Personal account settings (profile, my permissions) — every admin.
   // Not in the nav menu; reached from the header profile dropdown.
-  // Super-admin-only tabs (Platform) are checked inside the page.
   { path: "/admin/settings", permissions: [] },
 ];
 

@@ -20,7 +20,6 @@ import ProfileForm from "./Form/ProfileForm";
 import ProfileSummaryCard from "./ProfileSummaryCard";
 import { ProfileFormType, profileSchema } from "./Schema";
 import {
-  getInitials,
   toFormValues,
   toProfileFormData,
   toUpdatePayload,
@@ -97,8 +96,6 @@ export default function ProfilePage() {
           <ProfileForm
             onSubmit={onSubmit}
             onReset={onReset}
-            email={profile?.email}
-            initials={getInitials(profile?.firstName, profile?.lastName)}
             error={error}
             isPending={isPending || (isLoading && !profile)}
           />

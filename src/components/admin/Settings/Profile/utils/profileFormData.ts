@@ -11,6 +11,7 @@ export const PROFILE_PICTURE_MAX_BYTES = 2 * 1024 * 1024;
 
 /** Profile → form defaults (picture = current URL until a new file is picked). */
 export const toFormValues = (profile?: IMyProfile): ProfileFormType => ({
+  email: profile?.email ?? "",
   firstName: profile?.firstName ?? "",
   lastName: profile?.lastName ?? "",
   phone: profile?.phone ?? "",

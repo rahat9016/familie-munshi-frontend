@@ -1,54 +1,76 @@
 import { Check } from "lucide-react";
 import { ModulePermissionListProps } from "./types";
-import { humanize } from "./utils/myPermissionsData";
+import { getModuleIcon } from "./utils/moduleIcons";
+import { getActionKey, humanize } from "./utils/myPermissionsData";
 
-/** Module cards, each listing the permissions held in it. */
+/**
+ * One card per module. CSS columns (masonry) so short modules don't leave
+ * empty space next to long ones.
+ */
 export default function ModulePermissionList({
   modules,
   emptyMessage = "No permissions.",
 }: ModulePermissionListProps) {
   if (!modules.length) {
     return (
-      <p className="py-8 text-center text-sm text-secondary-gary">
+      <p className="py-10 text-center text-sm text-secondary-gary">
         {emptyMessage}
       </p>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3">
-      {modules.map((m) => (
-        <div
-          key={m.module}
-          className="rounded-md border border-light-dark overflow-hidden"
-        >
-          <div className="flex items-center justify-between gap-2 bg-light px-3 py-2">
-            <h3 className="text-sm font-semibold text-secondary-dark truncate">
-              {humanize(m.module)}
-            </h3>
-            <span className="shrink-0 rounded bg-white px-1.5 py-0.5 text-[11px] font-medium text-secondary-gary border border-light-dark">
-              {m.permissions.length}
-            </span>
+    <div className="columns-1 md:columns-2 2xl:columns-3 gap-3">
+      {modules.map((m) => {
+        const Icon = getModuleIcon(m.module);
+        const count = m.permissions.length;
+
+        return (
+          <div
+            key={m.module}
+            className="mb-3 break-inside-avoid rounded-lg border border-light-dark bg-white"
+          >
+            <div className="flex items-center gap-3 border-b border-light-dark px-4 py-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <Icon className="size-4.5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="truncate text-[15px] font-semibold leading-tight text-secondary-dark">
+                  {humanize(m.module)}
+                </h3>
+                <p className="mt-0.5 text-xs text-secondary-gary">
+                  {count} {count === 1 ? "permission" : "permissions"}
+                </p>
+              </div>
+            </div>
+
+            <ul className="py-1.5">
+              {m.permissions.map((p) => {
+                const action = getActionKey(m.module, p.name);
+                return (
+                  <li
+                    key={p.id ?? p.name}
+                    className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-light/70"
+                  >
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Check className="size-3" strokeWidth={3} />
+                    </span>
+                    <span className="min-w-0 flex-1 text-sm text-secondary-dark">
+                      {p.description || humanize(action)}
+                    </span>
+                    <span
+                      title={p.name}
+                      className="shrink-0 rounded-md bg-light px-2 py-0.5 text-[11px] font-medium text-secondary-gary"
+                    >
+                      {humanize(action)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
-          <ul className="divide-y divide-light-dark">
-            {m.permissions.map((p) => (
-              <li key={p.id ?? p.name} className="flex gap-2 px-3 py-2">
-                <Check className="mt-0.5 w-3.5 h-3.5 shrink-0 text-emerald-500" />
-                <div className="min-w-0">
-                  <p className="font-mono text-xs text-secondary-dark break-all">
-                    {p.name}
-                  </p>
-                  {p.description && (
-                    <p className="text-xs text-secondary-gary mt-0.5">
-                      {p.description}
-                    </p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

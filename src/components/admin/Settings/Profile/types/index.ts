@@ -6,16 +6,8 @@ import { ProfileFormType } from "../Schema";
 export interface ProfileFormProps {
   onSubmit: (data: ProfileFormType) => void;
   onReset: () => void;
-  /** Read-only; email cannot be changed here. */
-  email?: string;
-  /** Avatar fallback, e.g. "RU". */
-  initials: string;
   error?: ErrorType | null;
   isPending?: boolean;
-}
-
-export interface ProfilePictureFieldProps {
-  initials: string;
 }
 
 export interface ProfileSummaryCardProps {

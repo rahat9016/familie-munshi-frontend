@@ -42,3 +42,12 @@ export const filterModules = (
     })
     .filter((m) => m.permissions?.length);
 };
+
+/**
+ * Action part of a permission name: "BRANCH_CREATE" in "BRANCH" → "CREATE".
+ * Names without the module prefix ("ROLE_PERMISSION_MANAGE") stay whole.
+ */
+export const getActionKey = (module: string, name: string) => {
+  const prefix = `${module.toUpperCase()}_`;
+  return name.startsWith(prefix) ? name.slice(prefix.length) : name;
+};

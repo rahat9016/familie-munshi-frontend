@@ -9,6 +9,7 @@ interface ControlledInputFieldProps {
   placeholder?: string;
   className?: string;
   icon?: ReactElement;
+  disabled?: boolean;
 
   // ✅ add this
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -20,6 +21,7 @@ const ControlledInputField: React.FC<ControlledInputFieldProps> = ({
   placeholder,
   className,
   icon,
+  disabled,
   onKeyDown,
 }) => {
   const { control } = useFormContext();
@@ -40,6 +42,7 @@ const ControlledInputField: React.FC<ControlledInputFieldProps> = ({
             error={error?.message}
             className={className}
             showErrorMessage={!!error}
+            disabled={disabled}
             onKeyDown={onKeyDown}
           />
         )}

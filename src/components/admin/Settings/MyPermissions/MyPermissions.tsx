@@ -52,7 +52,7 @@ export default function MyPermissionsPage() {
         description="What your role lets you see and do. Ask an admin if something is missing."
         icon={KeyRound}
         action={
-          <div className="flex items-center h-9 w-full sm:w-72 rounded-md border border-light-dark px-2.5 gap-2 focus-within:border-primary">
+          <div className="flex items-center h-10 w-full sm:w-72 rounded-md border border-light-dark bg-white px-3 gap-2 transition-colors focus-within:border-primary">
             <Search className="w-4 h-4 text-[#BDBDBD] shrink-0" />
             <input
               value={search}
@@ -67,7 +67,7 @@ export default function MyPermissionsPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-36 w-full" />
+              <Skeleton key={i} className="h-52 w-full rounded-lg" />
             ))}
           </div>
         ) : (

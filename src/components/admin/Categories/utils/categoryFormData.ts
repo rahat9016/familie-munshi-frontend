@@ -28,9 +28,27 @@ export const toFormValues = (
   name: item?.name ?? "",
   parentId: item?.parentId ?? "",
   icon: item?.icon ?? "",
+  position: item?.position ?? 1,
 });
 
-/** POST body: omit parentId for GROUP, omit empty icon. */
+/**
+ * Next free position among siblings: highest existing position + 1 (1 when
+ * none). Siblings = same parent; pass no `parentId` to use the whole level
+ * (GROUP, or before a parent is picked).
+ */
+export const getNextPosition = (
+  items: IProductClassification[],
+  parentId?: string | null
+): number => {
+  const siblings = parentId
+    ? items.filter((item) => item.parentId === parentId)
+    : items;
+  return (
+    siblings.reduce((max, item) => Math.max(max, item.position ?? 0), 0) + 1
+  );
+};
+
+/** POST body: omit parentId for GROUP, omit empty icon; position always sent. */
 export const toCreatePayload = (
   data: CategoryFormType,
   level: ProductClassificationLevel,
@@ -39,6 +57,7 @@ export const toCreatePayload = (
   const body: ICreateProductClassificationBody = {
     name: data.name.trim(),
     level,
+    position: data.position,
   };
   if (requiresParent && data.parentId) body.parentId = data.parentId;
   const icon = data.icon.trim();
@@ -59,5 +78,6 @@ export const toUpdatePayload = (
     body.parentId = data.parentId;
   const icon = data.icon.trim();
   if (icon !== (original.icon ?? "")) body.icon = icon;
+  if (data.position !== original.position) body.position = data.position;
   return body;
 };

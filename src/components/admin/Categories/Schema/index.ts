@@ -17,6 +17,13 @@ export const getCategorySchema = (requiresParent: boolean) =>
       .default("")
       .max(100, "Icon must be at most 100 characters")
       .oneOf(ICON_VALUES, "Select an icon from the list"),
+    position: Yup.number()
+      // Empty input → undefined so `required` fires instead of typeError.
+      .transform((value, original) => (original === "" ? undefined : value))
+      .typeError("Position must be a number")
+      .required("Position is required")
+      .integer("Position must be a whole number")
+      .min(1, "Position must be at least 1"),
   });
 
 export type CategoryFormType = Yup.InferType<

@@ -61,6 +61,15 @@ export const GetCategoryColumns = (
         ]
       : []),
     {
+      header: "Position",
+      accessorKey: "position",
+      cell: (value) => (
+        <span className="text-sm text-secondary-gary">
+          {(value as number | null) ?? "—"}
+        </span>
+      ),
+    },
+    {
       header: "Status",
       accessorKey: "active",
       cell: (value) => (

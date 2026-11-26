@@ -8,6 +8,7 @@ import { Button } from "@/src/components/ui/button";
 import { useFormContext } from "react-hook-form";
 import { CategoryFormType } from "../Schema";
 import { CategoryFormProps } from "../types";
+import CategoryPositionField from "./CategoryPositionField";
 
 export default function CategoryForm({
   onSubmit,
@@ -16,6 +17,8 @@ export default function CategoryForm({
   parentLabel,
   parentOptions,
   isParentsLoading = false,
+  suggestedPosition,
+  isPositionLoading = false,
   isEditMode = false,
   error,
   isPending = false,
@@ -61,6 +64,11 @@ export default function CategoryForm({
           placeholder="Select icon (optional)"
         />
       </div>
+
+      <CategoryPositionField
+        suggestedPosition={isEditMode ? undefined : suggestedPosition}
+        isLoading={!isEditMode && isPositionLoading}
+      />
 
       <ErrorMessage error={error} />
 

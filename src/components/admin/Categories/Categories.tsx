@@ -20,7 +20,7 @@ import {
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { FormProvider, Resolver, useForm } from "react-hook-form";
+import { FormProvider, Resolver, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import CategoriesTable from "./CategoriesTable";
 import CategoryFormModal from "./CategoryFormModal";
@@ -34,6 +34,7 @@ import {
   CATEGORIES_ENDPOINT,
   CATEGORIES_QUERY_KEY,
   categoryEndpoint,
+  getNextPosition,
   toCreatePayload,
   toFormValues,
   toUpdatePayload,
@@ -109,6 +110,33 @@ export default function CategoriesPage({ level }: CategoriesProps) {
     return options;
   }, [parentsRes, editItem]);
 
+  // GET /product-classifications/by-level/{LEVEL} — siblings for next position (create only)
+  const { data: siblingsRes, isLoading: isSiblingsLoading } = useGet<
+    IProductClassification[]
+  >(byLevelEndpoint(level), byLevelQueryKey(level), undefined, {
+    enabled: formState.open && !isEditMode,
+  });
+
+  const selectedParentId = useWatch({
+    control: methods.control,
+    name: "parentId",
+  });
+
+  const suggestedPosition = useMemo(() => {
+    if (isEditMode || isSiblingsLoading) return undefined;
+    const siblings = Array.isArray(siblingsRes?.data) ? siblingsRes.data : [];
+    return getNextPosition(
+      siblings,
+      requiresParent ? selectedParentId : undefined
+    );
+  }, [
+    isEditMode,
+    isSiblingsLoading,
+    siblingsRes,
+    requiresParent,
+    selectedParentId,
+  ]);
+
   // POST /product-classifications
   const {
     mutateAsync: createCategory,
@@ -135,6 +163,16 @@ export default function CategoriesPage({ level }: CategoriesProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formState.open, editItem?.id]);
+
+  // Create: prefill next position (also when parent changes) until the user
+  // types their own. resetField makes the suggestion the field's default, so
+  // any manual edit marks it dirty and stops further auto-updates.
+  useEffect(() => {
+    if (!formState.open || suggestedPosition === undefined) return;
+    if (methods.getFieldState("position").isDirty) return;
+    methods.resetField("position", { defaultValue: suggestedPosition });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formState.open, suggestedPosition]);
 
   const onSubmit = (data: CategoryFormType) => {
     if (!editItem) {
@@ -266,6 +304,8 @@ export default function CategoriesPage({ level }: CategoriesProps) {
           }
           parentOptions={parentOptions}
           isParentsLoading={isParentsLoading}
+          suggestedPosition={suggestedPosition}
+          isPositionLoading={formState.open && !isEditMode && isSiblingsLoading}
           isEditMode={isEditMode}
           error={isEditMode ? updateError : createError}
           isPending={isEditMode ? isUpdating : isCreating}

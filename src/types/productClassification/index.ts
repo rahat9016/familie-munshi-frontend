@@ -40,6 +40,8 @@ export interface IProductClassification {
   active: boolean;
   parentId: string | null;
   parentName: string | null;
+  /** Display order among siblings. */
+  position: number | null;
   actions?: string;
 }
 
@@ -64,6 +66,8 @@ export interface ICreateProductClassificationBody {
   parentId?: string;
   /** Plain string (icon name or URL). Omit when empty. */
   icon?: string;
+  /** Display order among siblings. */
+  position: number;
 }
 
 /** PATCH body — every field optional; send only what changed. */
@@ -73,6 +77,7 @@ export interface IUpdateProductClassificationBody {
   /** `""` clears the icon; omit to keep it. */
   icon?: string;
   level?: ProductClassificationLevel;
+  position?: number;
 }
 
 /** Node of GET /product-classifications/tree/{rootId} (recursive). */

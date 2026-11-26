@@ -19,9 +19,17 @@ export interface CategoryFormProps {
   parentLabel: string | null;
   parentOptions: ISelectOption[];
   isParentsLoading?: boolean;
+  /** Create only: next free position among siblings. */
+  suggestedPosition?: number;
+  isPositionLoading?: boolean;
   isEditMode?: boolean;
   error?: ErrorType | null;
   isPending?: boolean;
+}
+
+export interface CategoryPositionFieldProps {
+  suggestedPosition?: number;
+  isLoading?: boolean;
 }
 
 export interface CategoryFormModalProps extends CategoryFormProps {

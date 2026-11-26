@@ -72,6 +72,7 @@ export default function CategoryViewModal({
                 item.icon || "—"
               )}
             </DetailRow>
+            <DetailRow label="Position">{item.position ?? "—"}</DetailRow>
             <DetailRow label="Status">
               <StatusBadge
                 status={item.active ? StatusType.ACTIVE : StatusType.INACTIVE}

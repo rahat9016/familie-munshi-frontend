@@ -1,14 +1,20 @@
 import { siteConfig } from "@/src/config/siteConfig";
+import { cn } from "@/src/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 
 /** Brand logo: squirrel icon + two-tone wordmark + slogan. */
 export default function BrandLogo({
   size = "md",
+  href = "/",
   className = "",
+  wordmarkClassName = "",
 }: {
   size?: "sm" | "md";
+  href?: string;
   className?: string;
+  /** Extra classes for the wordmark + slogan block (e.g. "hidden sm:flex"). */
+  wordmarkClassName?: string;
 }) {
   const badge = size === "sm" ? 44 : 64;
   const text = size === "sm" ? "text-lg" : "text-2xl xl:text-3xl";
@@ -20,9 +26,9 @@ export default function BrandLogo({
 
   return (
     <Link
-      href="/"
+      href={href}
       aria-label={siteConfig.name}
-      className={`group flex items-center gap-2.5 ${className}`}
+      className={cn("group flex items-center gap-2.5", className)}
     >
       {/* Logo icon */}
       <Image
@@ -35,7 +41,7 @@ export default function BrandLogo({
       />
 
       {/* Wordmark */}
-      <span className="flex flex-col leading-none">
+      <span className={cn("flex flex-col leading-none", wordmarkClassName)}>
         <span className={`font-brand font-bold tracking-tight ${text}`}>
           <span className="text-secondary">{first}</span>
           {second && <span className="text-primary"> {second}</span>}

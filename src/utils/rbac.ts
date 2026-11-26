@@ -15,12 +15,25 @@ export interface ApiModulePermissions {
   permissions: ApiPermission[];
 }
 
+/** Roles + permissions the user holds inside one branch. */
+export interface ApiBranchPermissions {
+  branchId: string;
+  branchCode?: string | null;
+  branchName?: string | null;
+  roles: string[];
+  permissions: ApiModulePermissions[];
+}
+
 export interface MyPermissionsResponse {
   userId: string;
   scope: string;
   roles: string[];
   branchId?: string | null;
+  branchCode?: string | null;
+  branchName?: string | null;
   permissions: ApiModulePermissions[];
+  /** Per-branch access (branch-scoped users). */
+  branches?: ApiBranchPermissions[];
 }
 
 export const PERMISSIONS_ME_ENDPOINT = "/permissions/me";

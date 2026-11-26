@@ -15,8 +15,8 @@ import {
   TIMEZONE_OPTIONS,
   WEIGHT_UNIT_OPTIONS,
 } from "../data/mockSettingsData";
-import { SettingsFormValues } from "../Schema/settingsSchema";
-import SettingsSection from "./SettingsSection";
+import { SettingsFormValues } from "../Schema";
+import SettingsSection from "../../SettingsSection";
 
 export default function SettingsForm({
   onSubmit,
@@ -30,7 +30,7 @@ export default function SettingsForm({
   const { handleSubmit } = useFormContext<SettingsFormValues>();
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-3">
       <SettingsSection
         title="General"
         description="Identity and contact details shown across the storefront and emails."

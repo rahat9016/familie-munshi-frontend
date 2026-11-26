@@ -1,11 +1,14 @@
 "use client";
 
+import { selectIsSuperAdmin } from "@/src/lib/redux/features/rbac/rbacSelectors";
+import { useAppSelector } from "@/src/lib/redux/hooks";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import SettingsForm from "./Form/SettingsForm";
-import { SettingsFormValues, settingsSchema } from "./Schema/settingsSchema";
+import { SettingsFormValues, settingsSchema } from "./Schema";
 import { mockAdminSettings } from "./data/mockSettingsData";
 import { AdminSettings } from "./types";
 
@@ -27,7 +30,9 @@ const toFormValues = (settings: AdminSettings): SettingsFormValues => ({
   storeAddress: settings.storeAddress,
 });
 
-export default function SettingsPanel() {
+/** Platform-wide store configuration (mock data — no backend yet). */
+export default function PlatformSettingsPage() {
+  const isSuperAdmin = useAppSelector(selectIsSuperAdmin);
   const [settings, setSettings] = useState<AdminSettings>(mockAdminSettings);
 
   const methods = useForm<SettingsFormValues>({
@@ -51,15 +56,26 @@ export default function SettingsPanel() {
     methods.reset(toFormValues(settings));
   };
 
+  if (!isSuperAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg border border-light-dark bg-white py-16 text-center">
+        <ShieldAlert className="mb-3 h-8 w-8 text-red-400" />
+        <h2 className="text-base font-semibold text-secondary-dark">
+          Super admin only
+        </h2>
+        <p className="mt-1 text-sm text-secondary-gary">
+          Platform settings can only be changed by a super admin.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full space-y-5">
+    <div className="w-full space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-xl font-semibold text-secondary">Settings</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Platform-wide configuration. Changes apply to every branch.
-          </p>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          Platform-wide configuration. Changes apply to every branch.
+        </p>
         <p className="text-xs text-muted-foreground">
           Last updated{" "}
           {new Date(settings.updatedAt).toLocaleString("en-GB", {

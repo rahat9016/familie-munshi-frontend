@@ -1,7 +1,5 @@
-"use client";
+import Profile from "@/src/components/admin/Settings/Profile/Profile";
 
-import SettingsPanel from "@/src/components/admin/Settings/SettingsPanel";
-
-export default function AdminSettingsPage() {
-  return <SettingsPanel />;
+export default function page() {
+  return <Profile />;
 }

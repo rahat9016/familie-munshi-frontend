@@ -72,6 +72,7 @@ export const UserFetcher = () => {
           firstName: profile.firstName,
           lastName: profile.lastName,
           phone: profile.phone ?? null,
+          profilePicture: profile.profilePicture ?? null,
           status: profile.active ? "ACTIVE" : "INACTIVE",
           role: roleName,
         })

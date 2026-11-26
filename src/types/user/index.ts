@@ -30,7 +30,7 @@ export const isUserActive = (u?: IUser | null) => u?.active !== false;
 export const getUserFullName = (u?: IUser | null) =>
   [u?.firstName, u?.lastName].filter(Boolean).join(" ") || "—";
 
-/** Current user's profile endpoint (GET; PATCH for self-update). */
+/** Current user's profile endpoint (GET; PATCH multipart for self-update). */
 export const USERS_ME_ENDPOINT = "/users/me";
 /** Shared by UserFetcher and Profile settings so an update refreshes both. */
 export const USERS_ME_QUERY_KEY = ["users-me"];
@@ -42,12 +42,17 @@ export interface IMyProfile {
   firstName: string;
   lastName: string;
   phone?: string | null;
+  profilePicture?: string | null;
   active: boolean;
 }
 
-/** PATCH /users/me body — send only changed fields; phone "" clears it. */
+/**
+ * PATCH /users/me body (sent as multipart/form-data) — only changed fields.
+ * phone "" clears it; profilePicture omitted keeps the current one.
+ */
 export interface IUpdateMyProfileBody {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  profilePicture?: File;
 }

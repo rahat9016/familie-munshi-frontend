@@ -1,10 +1,27 @@
 import { type MenuItem } from "@/src/utils/getMenuItems";
+import { KeyRound, Settings } from "lucide-react";
 import { type AdminSearchPage } from "../types";
 
 export const ADMIN_SEARCH_DEBOUNCE_MS = 300;
 export const ADMIN_SEARCH_MAX_RESULTS = 8;
 
-/** Menu tree → flat list of pages (leaf items + every child). */
+/** Personal pages every admin can open; not part of the nav menu. */
+const ACCOUNT_PAGES: AdminSearchPage[] = [
+  {
+    label: "Settings",
+    href: "/admin/settings",
+    group: "Account",
+    icon: Settings,
+  },
+  {
+    label: "My permissions",
+    href: "/admin/settings/permissions",
+    group: "Account",
+    icon: KeyRound,
+  },
+];
+
+/** Menu tree → flat list of pages (leaf items + every child) + account pages. */
 export function flattenMenuPages(items: MenuItem[]): AdminSearchPage[] {
   const pages: AdminSearchPage[] = [];
 
@@ -22,7 +39,7 @@ export function flattenMenuPages(items: MenuItem[]): AdminSearchPage[] {
     }
   }
 
-  return pages;
+  return [...pages, ...ACCOUNT_PAGES];
 }
 
 /**

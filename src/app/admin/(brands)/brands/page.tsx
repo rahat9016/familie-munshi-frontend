@@ -1,9 +1,5 @@
-import BrandList from "@/src/components/admin/Brands/BrandList/BrandList";
+import Brands from "@/src/components/admin/Brands/Brands";
 
 export default function page() {
-  return (
-    <div>
-      <BrandList />
-    </div>
-  );
+  return <Brands />;
 }

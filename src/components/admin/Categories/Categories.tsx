@@ -2,6 +2,7 @@
 
 import DeleteConfirmDialog from "@/src/components/shared/DeleteConfirmDialog";
 import { PERMISSION } from "@/src/constants/auth/permissions";
+import { useAutoPosition } from "@/src/hooks/useAutoPosition";
 import { useDelete } from "@/src/hooks/useDelete";
 import { useGet } from "@/src/hooks/useGet";
 import { usePagination } from "@/src/hooks/usePagination";
@@ -164,15 +165,11 @@ export default function CategoriesPage({ level }: CategoriesProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formState.open, editItem?.id]);
 
-  // Create: prefill next position (also when parent changes) until the user
-  // types their own. resetField makes the suggestion the field's default, so
-  // any manual edit marks it dirty and stops further auto-updates.
-  useEffect(() => {
-    if (!formState.open || suggestedPosition === undefined) return;
-    if (methods.getFieldState("position").isDirty) return;
-    methods.resetField("position", { defaultValue: suggestedPosition });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formState.open, suggestedPosition]);
+  // Create: auto-increment position (follows parent changes) until edited.
+  useAutoPosition(methods, "position", {
+    active: formState.open,
+    suggested: suggestedPosition,
+  });
 
   const onSubmit = (data: CategoryFormType) => {
     if (!editItem) {

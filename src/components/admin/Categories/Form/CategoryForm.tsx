@@ -1,6 +1,7 @@
 import ErrorMessage from "@/src/components/shared/Errors/ErrorMessage";
 import ControlledIconSelectField from "@/src/components/shared/FromController/ControlledIconSelectField";
 import ControlledInputField from "@/src/components/shared/FromController/ControlledInputField";
+import ControlledPositionField from "@/src/components/shared/FromController/ControlledPositionField";
 import ControlledSearchableSelectField from "@/src/components/shared/FromController/ControlledSearchableSelectField";
 import InputLabel from "@/src/components/shared/InputLabel";
 import SubmitButton from "@/src/components/shared/SubmitButton";
@@ -8,7 +9,6 @@ import { Button } from "@/src/components/ui/button";
 import { useFormContext } from "react-hook-form";
 import { CategoryFormType } from "../Schema";
 import { CategoryFormProps } from "../types";
-import CategoryPositionField from "./CategoryPositionField";
 
 export default function CategoryForm({
   onSubmit,
@@ -65,7 +65,7 @@ export default function CategoryForm({
         />
       </div>
 
-      <CategoryPositionField
+      <ControlledPositionField
         suggestedPosition={isEditMode ? undefined : suggestedPosition}
         isLoading={!isEditMode && isPositionLoading}
       />

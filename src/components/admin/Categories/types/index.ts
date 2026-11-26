@@ -27,11 +27,6 @@ export interface CategoryFormProps {
   isPending?: boolean;
 }
 
-export interface CategoryPositionFieldProps {
-  suggestedPosition?: number;
-  isLoading?: boolean;
-}
-
 export interface CategoryFormModalProps extends CategoryFormProps {
   isOpen: boolean;
 }

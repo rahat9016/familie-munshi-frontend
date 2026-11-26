@@ -66,7 +66,11 @@ export function getMenuItems(): MenuItem[] {
         { label: "Category", href: "/admin/category" },
         { label: "Segment", href: "/admin/segment" },
         { label: "Sub Category", href: "/admin/sub-category" },
-        { label: "Brand List", href: "/admin/brands" },
+        {
+          label: "Brand List",
+          href: "/admin/brands",
+          permissions: [PERMISSION.BRAND_LIST_VIEW],
+        },
       ],
     },
 

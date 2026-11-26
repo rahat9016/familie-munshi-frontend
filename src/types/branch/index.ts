@@ -1,4 +1,4 @@
-import { getBaseUrl } from "@/src/config/envConfig";
+import { resolveMediaUrl } from "@/src/utils/resolveMediaUrl";
 
 /** Branch as returned by /api/v1/branches. */
 export interface IBranch {
@@ -41,13 +41,5 @@ export const isBranchActive = (b?: IBranch | null) =>
  * Logo URL. Relative paths (e.g. "/uploads/logo.png") are resolved against
  * the API origin so <img>/<Image> can load them.
  */
-export const getBranchLogo = (b?: IBranch | null): string | null => {
-  const raw = b?.logoUrl || b?.logo;
-  if (!raw) return null;
-  if (/^(https?:|data:|blob:)/i.test(raw)) return raw;
-  try {
-    return new URL(raw, new URL(getBaseUrl()).origin).toString();
-  } catch {
-    return raw;
-  }
-};
+export const getBranchLogo = (b?: IBranch | null): string | null =>
+  resolveMediaUrl(b?.logoUrl || b?.logo);

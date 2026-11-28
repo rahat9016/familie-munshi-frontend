@@ -171,7 +171,7 @@ export default function ArticleDetailView({
         property={createdProperty}
         seasonName={seasonName}
         deptName={deptName}
-        backHref={`/admin/styles/${seasonId}/${departmentId}/${categoryId}`}
+        backHref={`/admin/product-development/${seasonId}/${departmentId}/${categoryId}`}
       />
     );
   }
@@ -294,25 +294,25 @@ export default function ArticleDetailView({
             <BreadcrumbList className="text-xs md:text-sm text-secondary-gary">
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href="/admin/styles">Style</Link>
+                  <Link href="/admin/product-development">Style</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href={`/admin/styles/${seasonId}`}>{seasonName}</Link>
+                  <Link href={`/admin/product-development/${seasonId}`}>{seasonName}</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href={`/admin/styles/${seasonId}/${departmentId}`}>{deptName}</Link>
+                  <Link href={`/admin/product-development/${seasonId}/${departmentId}`}>{deptName}</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link href={`/admin/styles/${seasonId}/${departmentId}/${categoryId}`}>{categoryName}</Link>
+                  <Link href={`/admin/product-development/${seasonId}/${departmentId}/${categoryId}`}>{categoryName}</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />

@@ -47,12 +47,12 @@ export function getMenuItems(): MenuItem[] {
 
     // Styles / PLM (mock data) — no backend permission yet, so visible to
     // every admin. Add `permissions` once the backend module exists.
-    // Nested pages (/admin/styles/...) inherit this rule.
+    // Nested pages (/admin/product-development/...) inherit this rule.
     {
       segment: "Style & PLM",
-      label: "Styles",
+      label: "Product Development",
       icon: Shirt,
-      href: "/admin/styles",
+      href: "/admin/product-development",
     },
 
     {

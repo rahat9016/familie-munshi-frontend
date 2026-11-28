@@ -128,7 +128,7 @@ export default function MaterialDetailView({
           This material no longer exists.
         </p>
         <Link
-          href="/admin/styles/material"
+          href="/admin/product-development/material"
           className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
         >
           <ArrowLeft className="size-4" />

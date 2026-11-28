@@ -44,7 +44,7 @@ export default function DepartmentsTable({ seasonId }: DepartmentsTableProps) {
       accessorKey: "department",
       cell: (value, row) => (
         <Link
-          href={`/admin/styles/${seasonId}/${row.id}`}
+          href={`/admin/product-development/${seasonId}/${row.id}`}
           className="font-semibold text-primary hover:underline"
         >
           {value as string}

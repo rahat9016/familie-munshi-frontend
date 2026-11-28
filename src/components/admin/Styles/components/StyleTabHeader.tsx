@@ -12,27 +12,27 @@ export interface StyleTab {
 }
 
 export const STYLE_TABS: StyleTab[] = [
-  { label: "Style", href: "/admin/styles" },
-  { label: "Material", href: "/admin/styles/material" },
-  { label: "Color Way", href: "/admin/styles/color-way" },
-  { label: "Size Chart Template", href: "/admin/styles/size-chart-template" },
-  { label: "Care Label Info", href: "/admin/styles/care-label-info" },
-  { label: "Supplier", href: "/admin/styles/supplier" },
-  { label: "Documents", href: "/admin/styles/documents" },
+  { label: "Style", href: "/admin/product-development" },
+  { label: "Material", href: "/admin/product-development/material" },
+  { label: "Color Way", href: "/admin/product-development/color-way" },
+  { label: "Size Chart Template", href: "/admin/product-development/size-chart-template" },
+  { label: "Care Label Info", href: "/admin/product-development/care-label-info" },
+  { label: "Supplier", href: "/admin/product-development/supplier" },
+  { label: "Documents", href: "/admin/product-development/documents" },
 ];
 
 function isTabActive(tab: StyleTab, pathname: string) {
   if (pathname === tab.href) return true;
-  if (tab.href !== "/admin/styles" && pathname.startsWith(`${tab.href}/`)) {
+  if (tab.href !== "/admin/product-development" && pathname.startsWith(`${tab.href}/`)) {
     return true;
   }
   // "Style" also owns the season → department → category → article drill-down,
-  // which lives under /admin/styles/<seasonId>/...
-  if (tab.href === "/admin/styles") {
+  // which lives under /admin/product-development/<seasonId>/...
+  if (tab.href === "/admin/product-development") {
     const otherTab = STYLE_TABS.some(
-      (t) => t.href !== "/admin/styles" && (pathname === t.href || pathname.startsWith(`${t.href}/`))
+      (t) => t.href !== "/admin/product-development" && (pathname === t.href || pathname.startsWith(`${t.href}/`))
     );
-    return !otherTab && pathname.startsWith("/admin/styles");
+    return !otherTab && pathname.startsWith("/admin/product-development");
   }
   return false;
 }

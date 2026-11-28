@@ -1,7 +1,7 @@
 import { ImageIcon, Upload } from "lucide-react";
 import Link from "next/link";
 import { useId } from "react";
-import { ColumnFilterSelect } from "@/src/components/admin/Styles/TableColumns/ColorwayColumns";
+import { ColumnFilterSelect } from "@/src/components/admin/shared/ColumnFilterSelect";
 import { Checkbox } from "@/src/components/ui/checkbox";
 import { ColumnDef } from "@/src/components/ui/data-table";
 import { MATERIAL_TYPES } from "../data/materialHierarchy";
@@ -270,7 +270,7 @@ export const GetMaterialColumns = ({
       filterLabel: columnFilter("code" as MaterialFilterableField),
       cell: (_value, row) => (
         <Link
-          href={`/admin/styles/material/${row.id}`}
+          href={`/admin/product-development/material/${row.id}`}
           className="font-medium text-primary underline-offset-2 hover:underline"
           title="Open material details"
         >

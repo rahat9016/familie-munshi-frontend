@@ -29,7 +29,7 @@ function isChildMatch(
 }
 
 function isItemActive(item: MenuItem, pathname: string) {
-  // Leaf items also stay active on nested pages (e.g. /admin/styles/material).
+  // Leaf items also stay active on nested pages (e.g. /admin/product-development/material).
   const isActiveParent = item.href
     ? isChildMatch(item.href, item.matchRoutes, pathname)
     : false;

@@ -6,7 +6,7 @@ import {
   ColorwayTextField,
 } from "@/src/lib/redux/features/colorway/colorwaySlice";
 import { IColorway } from "@/src/lib/redux/features/colorway/colorwayTypes";
-import { ColumnFilterSelect } from "./ColorwayColumns";
+import { ColumnFilterSelect } from "@/src/components/admin/shared/ColumnFilterSelect";
 
 function FlagCell({
   row,

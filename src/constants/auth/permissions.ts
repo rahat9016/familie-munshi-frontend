@@ -42,6 +42,12 @@ export const PERMISSION = {
   BRAND_CREATE: "BRAND_CREATE",
   BRAND_UPDATE: "BRAND_UPDATE",
   BRAND_DELETE: "BRAND_DELETE",
+
+  COLORWAY_LIST_VIEW: "COLORWAY_LIST_VIEW",
+  COLORWAY_VIEW: "COLORWAY_VIEW",
+  COLORWAY_CREATE: "COLORWAY_CREATE",
+  COLORWAY_UPDATE: "COLORWAY_UPDATE",
+  COLORWAY_DELETE: "COLORWAY_DELETE",
 } as const;
 
 /** Backend permission modules (`permissions[].module`). */
@@ -52,6 +58,7 @@ export const PERMISSION_MODULE = {
   PERMISSION: "PERMISSION",
   PRODUCT_CLASSIFICATION: "PRODUCT_CLASSIFICATION",
   BRAND: "BRAND",
+  COLORWAY: "COLORWAY",
 } as const;
 
 export const isAdminPanelScope = (scope?: string | null): boolean =>

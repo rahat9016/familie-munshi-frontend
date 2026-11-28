@@ -18,7 +18,7 @@ export const GetSeasonColumns = (
           <span className="font-medium">{value as string}</span>
         ) : (
           <Link
-            href={`/admin/styles/${row.id}`}
+            href={`/admin/product-development/${row.id}`}
             className="text-blue-700 hover:underline font-medium"
           >
             {value as string}

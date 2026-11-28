@@ -328,7 +328,7 @@ export default function ArticlesTable({
   const handleViewCreatedProperty = () => {
     if (!createdCode) return;
     router.push(
-      `/admin/styles/${seasonId}/${departmentId}/${categoryId}/${createdCode}`
+      `/admin/product-development/${seasonId}/${departmentId}/${categoryId}/${createdCode}`
     );
     setCreatedCode(null);
   };
@@ -370,19 +370,19 @@ export default function ArticlesTable({
               <BreadcrumbList className="text-xs md:text-sm text-secondary-gary">
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link href="/admin/styles">Style</Link>
+                    <Link href="/admin/product-development">Style</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link href={`/admin/styles/${seasonId}`}>{seasonName}</Link>
+                    <Link href={`/admin/product-development/${seasonId}`}>{seasonName}</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link href={`/admin/styles/${seasonId}/${departmentId}`}>{deptName}</Link>
+                    <Link href={`/admin/product-development/${seasonId}/${departmentId}`}>{deptName}</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
@@ -517,7 +517,7 @@ export default function ArticlesTable({
                       >
                         <td className={columnClass}>
                           <Link
-                            href={`/admin/styles/${seasonId}/${departmentId}/${categoryId}/${item.style}`}
+                            href={`/admin/product-development/${seasonId}/${departmentId}/${categoryId}/${item.style}`}
                             className="text-primary font-semibold hover:underline"
                           >
                             {item.style}

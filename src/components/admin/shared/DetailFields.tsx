@@ -33,7 +33,8 @@ const inputClass =
 interface FieldProps<T, TText extends string, TFlag extends string> {
   row: DetailRow<TText, TFlag>;
   record: T;
-  onText: (field: TText, value: string) => void;
+  /** Return `false` to reject the edit and restore the shown value. */
+  onText: (field: TText, value: string) => boolean | void | Promise<boolean | void>;
   onFlag: (field: TFlag, value: boolean) => void;
 }
 
@@ -73,7 +74,11 @@ function FieldRow<T, TText extends string, TFlag extends string>({
             defaultValue={value}
             placeholder="—"
             onBlur={(e) => {
-              if (e.target.value !== value) onText(row.field, e.target.value);
+              const input = e.currentTarget;
+              if (input.value === value) return;
+              Promise.resolve(onText(row.field, input.value)).then((ok) => {
+                if (ok === false) input.value = value;
+              });
             }}
             className={`${inputClass} resize-y`}
           />
@@ -84,7 +89,11 @@ function FieldRow<T, TText extends string, TFlag extends string>({
             defaultValue={value}
             placeholder="—"
             onBlur={(e) => {
-              if (e.target.value !== value) onText(row.field, e.target.value);
+              const input = e.currentTarget;
+              if (input.value === value) return;
+              Promise.resolve(onText(row.field, input.value)).then((ok) => {
+                if (ok === false) input.value = value;
+              });
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") e.currentTarget.blur();

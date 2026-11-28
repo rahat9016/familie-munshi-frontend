@@ -20,7 +20,7 @@ export default function StyleCategoriesTable({
       accessorKey: "category",
       cell: (value, row) => (
         <Link
-          href={`/admin/styles/${seasonId}/${departmentId}/${row.id}`}
+          href={`/admin/product-development/${seasonId}/${departmentId}/${row.id}`}
           className="font-semibold text-primary hover:underline"
         >
           {value as string}

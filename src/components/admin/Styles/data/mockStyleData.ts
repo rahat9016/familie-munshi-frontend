@@ -1,11 +1,3 @@
-export interface ISeasonItem {
-  id: string;
-  season: string;
-  numberOfStyles: number;
-  status: "Completed" | "On Process" | "On Concept" | "On Planning";
-  actions?: string;
-}
-
 export interface IDepartmentItem {
   id: string;
   department: string;
@@ -52,15 +44,6 @@ export interface IArticleItem {
   colorIds?: string[];
   sizeIds?: string[];
 }
-
-export const mockSeasonsList: ISeasonItem[] = [
-  { id: "all", season: "All", numberOfStyles: 180, status: "On Process" },
-  { id: "0000-dummy", season: "0000 Dummy", numberOfStyles: 35, status: "Completed" },
-  { id: "786-summer", season: "786 NOOS/Summer", numberOfStyles: 25, status: "On Process" },
-  { id: "786-winter", season: "786 NOOS/Winter", numberOfStyles: 25, status: "On Process" },
-  { id: "2027-main", season: "2027 Main Collection", numberOfStyles: 45, status: "On Concept" },
-  { id: "2028-main", season: "2028 Main Collection", numberOfStyles: 50, status: "On Planning" },
-];
 
 export const mockDepartmentsList: IDepartmentItem[] = [
   {

@@ -1,9 +1,5 @@
-import SeasonsTable from "@/src/components/admin/Styles/components/SeasonsTable";
+import Seasons from "@/src/components/admin/Seasons/Seasons";
 
-export default function StylesSeasonsPage() {
-  return (
-    <div className="w-full space-y-6">
-      <SeasonsTable />
-    </div>
-  );
+export default function page() {
+  return <Seasons />;
 }

@@ -48,6 +48,12 @@ export const PERMISSION = {
   COLORWAY_CREATE: "COLORWAY_CREATE",
   COLORWAY_UPDATE: "COLORWAY_UPDATE",
   COLORWAY_DELETE: "COLORWAY_DELETE",
+
+  SEASON_LIST_VIEW: "SEASON_LIST_VIEW",
+  SEASON_VIEW: "SEASON_VIEW",
+  SEASON_CREATE: "SEASON_CREATE",
+  SEASON_UPDATE: "SEASON_UPDATE",
+  SEASON_DELETE: "SEASON_DELETE",
 } as const;
 
 /** Backend permission modules (`permissions[].module`). */
@@ -59,6 +65,7 @@ export const PERMISSION_MODULE = {
   PRODUCT_CLASSIFICATION: "PRODUCT_CLASSIFICATION",
   BRAND: "BRAND",
   COLORWAY: "COLORWAY",
+  SEASON: "SEASON",
 } as const;
 
 export const isAdminPanelScope = (scope?: string | null): boolean =>

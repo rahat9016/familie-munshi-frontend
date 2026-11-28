@@ -39,6 +39,8 @@ export interface MegaItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  /** Uploaded icon URL; rendered instead of `icon` when set. */
+  iconUrl?: string;
   highlight?: boolean;
 }
 

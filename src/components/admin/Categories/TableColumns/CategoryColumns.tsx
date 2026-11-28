@@ -1,12 +1,13 @@
 import RowActionsMenu from "@/src/components/shared/RowActionsMenu/RowActionsMenu";
 import StatusBadge from "@/src/components/shared/Status/Status";
 import { ColumnDef } from "@/src/components/ui/data-table";
-import { getClassificationIcon } from "@/src/constants/ecommerce/classificationIcons";
+import ClassificationIcon, {
+  hasClassificationIcon,
+} from "@/src/components/shared/ClassificationIcon/ClassificationIcon";
 import { StatusType } from "@/src/types/common/common";
 import {
+  getParentLevelLabel,
   IProductClassification,
-  PRODUCT_CLASSIFICATION_LEVEL_LABEL,
-  PRODUCT_CLASSIFICATION_PARENT_LEVEL,
   ProductClassificationLevel,
 } from "@/src/types/productClassification";
 import { Eye, Pencil, Trash2 } from "lucide-react";
@@ -23,34 +24,44 @@ export const GetCategoryColumns = (
   level: ProductClassificationLevel,
   { onView, onEdit, onDelete }: CategoryRowActions = {}
 ): ColumnDef<IProductClassification>[] => {
-  const parentLevel = PRODUCT_CLASSIFICATION_PARENT_LEVEL[level];
+  const parentLabel = getParentLevelLabel(level);
 
   return [
     {
       header: "Icon",
       accessorKey: "icon",
-      cell: (value) => {
-        const icon = getClassificationIcon(value as string | null);
-        return icon ? (
-          <span
-            title={icon.label}
-            className="inline-flex size-8 items-center justify-center rounded-md bg-light"
-          >
-            <icon.Icon className="size-4 text-primary" />
+      cell: (_value, row) =>
+        hasClassificationIcon(row) ? (
+          <span className="inline-flex size-8 items-center justify-center rounded-md bg-light">
+            <ClassificationIcon
+              source={row}
+              name={row.name}
+              size={16}
+              className="text-primary"
+            />
           </span>
         ) : (
-          <span className="text-sm text-secondary-gary">
-            {(value as string | null) || "—"}
-          </span>
-        );
-      },
+          <span className="text-sm text-secondary-gary">—</span>
+        ),
     },
     { header: "Name", accessorKey: "name" },
+    {
+      header: "Description",
+      accessorKey: "description",
+      cell: (value) => (
+        <span
+          title={(value as string | null) ?? undefined}
+          className="block max-w-60 truncate text-sm text-secondary-gary"
+        >
+          {(value as string | null) || "—"}
+        </span>
+      ),
+    },
     { header: "Code", accessorKey: "code" },
-    ...(parentLevel
+    ...(parentLabel
       ? [
           {
-            header: PRODUCT_CLASSIFICATION_LEVEL_LABEL[parentLevel],
+            header: parentLabel,
             accessorKey: "parentName",
             cell: (value) => (
               <span className="text-sm text-secondary-gary">

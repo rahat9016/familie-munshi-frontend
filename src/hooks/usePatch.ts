@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosRequestConfig } from "axios";
 import { toast } from "react-toastify";
 import { IGenericErrorResponse } from "../types/common/common";
+import { getApiErrorMessage } from "../utils/apiError";
 import { axiosInstance } from "../helpers/axios/axiosInstance";
 
 type PatchArg =
@@ -54,7 +55,7 @@ export const usePatch = <T>(
     },
 
     onError: (error) => {
-      toast.error(error.message || "Failed to update.");
+      toast.error(getApiErrorMessage(error, "Failed to update."));
       throw error;
     },
   });

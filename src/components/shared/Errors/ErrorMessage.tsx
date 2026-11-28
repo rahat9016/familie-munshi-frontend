@@ -1,4 +1,5 @@
 import { ErrorType } from "@/src/types/common/common";
+import { getApiErrorMessage } from "@/src/utils/apiError";
 import { FieldError } from "react-hook-form";
 
 const ErrorMessage = ({ error }: { error?: ErrorType | FieldError }) => {
@@ -7,8 +8,9 @@ const ErrorMessage = ({ error }: { error?: ErrorType | FieldError }) => {
   const getErrorMessage = (
     err: Exclude<ErrorType | FieldError, null | undefined>
   ): string => {
+    // Backend field errors are objects: { field, code, message }.
     if ("errors" in err && Array.isArray(err.errors) && err.errors.length > 0) {
-      return String(err.errors[0]);
+      return getApiErrorMessage(err);
     }
 
     if (

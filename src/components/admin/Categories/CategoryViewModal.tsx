@@ -8,11 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/src/components/ui/dialog";
-import { getClassificationIcon } from "@/src/constants/ecommerce/classificationIcons";
+import ClassificationIcon, {
+  hasClassificationIcon,
+} from "@/src/components/shared/ClassificationIcon/ClassificationIcon";
 import { StatusType } from "@/src/types/common/common";
 import {
+  ClassificationIconType,
+  getParentLevelLabel,
   PRODUCT_CLASSIFICATION_LEVEL_LABEL,
-  PRODUCT_CLASSIFICATION_PARENT_LEVEL,
 } from "@/src/types/productClassification";
 import { CategoryViewModalProps } from "./types";
 
@@ -21,10 +24,8 @@ export default function CategoryViewModal({
   onClose,
 }: CategoryViewModalProps) {
   const levelLabel = item ? PRODUCT_CLASSIFICATION_LEVEL_LABEL[item.level] : "";
-  const parentLevel = item
-    ? PRODUCT_CLASSIFICATION_PARENT_LEVEL[item.level]
-    : null;
-  const icon = getClassificationIcon(item?.icon);
+  const parentLabel = item ? getParentLevelLabel(item.level) : null;
+  const hasIcon = hasClassificationIcon(item);
 
   return (
     <Dialog
@@ -36,9 +37,13 @@ export default function CategoryViewModal({
       <DialogContent className="bg-white sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-secondary text-xl font-semibold flex items-center gap-3">
-            {icon && (
+            {hasIcon && (
               <span className="inline-flex size-10 items-center justify-center rounded-lg bg-light">
-                <icon.Icon className="size-5 text-primary" />
+                <ClassificationIcon
+                  source={item}
+                  name={item?.name}
+                  className="text-primary"
+                />
               </span>
             )}
             <span>{item?.name}</span>
@@ -48,28 +53,37 @@ export default function CategoryViewModal({
         {item && (
           <dl className="mt-2">
             <DetailRow label="Name">{item.name}</DetailRow>
+            <DetailRow label="Description">
+              <span className="whitespace-pre-line">
+                {item.description || "—"}
+              </span>
+            </DetailRow>
             <DetailRow label="Code">
               <span className="font-mono text-xs">{item.code}</span>
             </DetailRow>
             <DetailRow label="Level">{levelLabel || item.level}</DetailRow>
-            {parentLevel && (
-              <DetailRow
-                label={PRODUCT_CLASSIFICATION_LEVEL_LABEL[parentLevel]}
-              >
+            {parentLabel && (
+              <DetailRow label={parentLabel}>
                 {item.parentName || "—"}
               </DetailRow>
             )}
             <DetailRow label="Icon">
-              {icon ? (
+              {hasIcon ? (
                 <span className="inline-flex items-center gap-2">
-                  <icon.Icon className="size-4 text-primary" />
-                  {icon.label}
+                  <ClassificationIcon
+                    source={item}
+                    name={item.name}
+                    size={16}
+                    className="text-primary"
+                  />
                   <span className="text-xs text-secondary-gary">
-                    ({icon.value})
+                    {item.iconType === ClassificationIconType.FILE
+                      ? "Uploaded file"
+                      : item.icon}
                   </span>
                 </span>
               ) : (
-                item.icon || "—"
+                "—"
               )}
             </DetailRow>
             <DetailRow label="Position">{item.position ?? "—"}</DetailRow>

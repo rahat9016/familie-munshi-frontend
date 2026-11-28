@@ -15,14 +15,16 @@ import { IGenericErrorResponse } from "@/src/types/common/common";
 import {
   IProductClassification,
   IProductClassificationMeta,
+  getParentLevelLabel,
+  PRODUCT_CLASSIFICATION_ALLOWED_PARENT_LEVELS,
   PRODUCT_CLASSIFICATION_LEVEL_LABEL,
-  PRODUCT_CLASSIFICATION_PARENT_LEVEL,
 } from "@/src/types/productClassification";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { FormProvider, Resolver, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
+import { getApiErrorMessage, getApiFieldErrors } from "@/src/utils/apiError";
 import CategoriesTable from "./CategoriesTable";
 import CategoryFormModal from "./CategoryFormModal";
 import CategoryViewModal from "./CategoryViewModal";
@@ -36,18 +38,34 @@ import {
   CATEGORIES_QUERY_KEY,
   categoryEndpoint,
   getNextPosition,
+  MULTIPART_CONFIG,
+  toCategoryFormData,
   toCreatePayload,
   toFormValues,
+  toParentOptionLabel,
   toUpdatePayload,
 } from "./utils/categoryFormData";
 
 const statusOf = (err: unknown) =>
   (err as IGenericErrorResponse | undefined)?.statusCode;
 
+/** Form fields the backend may report in a 400 VALIDATION_FAILED. */
+const FORM_FIELDS = new Set<keyof CategoryFormType>([
+  "name",
+  "description",
+  "parentId",
+  "icon",
+  "iconFile",
+  "position",
+  "isActive",
+]);
+
 export default function CategoriesPage({ level }: CategoriesProps) {
   const levelLabel = PRODUCT_CLASSIFICATION_LEVEL_LABEL[level];
-  const parentLevel = PRODUCT_CLASSIFICATION_PARENT_LEVEL[level];
-  const requiresParent = parentLevel !== null;
+  const parentLevels = PRODUCT_CLASSIFICATION_ALLOWED_PARENT_LEVELS[level];
+  const parentLabel = getParentLevelLabel(level);
+  const requiresParent = parentLevels.length > 0;
+  const parentLevel = parentLevels[0] ?? null;
 
   const [formState, setFormState] = useState<CategoryFormState>({
     open: false,
@@ -99,7 +117,7 @@ export default function CategoriesPage({ level }: CategoriesProps) {
     const parents = Array.isArray(parentsRes?.data) ? parentsRes.data : [];
     const options = parents
       .filter((p) => p.id !== editItem?.id)
-      .map((p) => ({ label: p.name, value: p.id }));
+      .map((p) => ({ label: toParentOptionLabel(p), value: p.id }));
     // Keep the current parent selectable even if by-level no longer lists it.
     if (
       editItem?.parentId &&
@@ -171,15 +189,33 @@ export default function CategoriesPage({ level }: CategoriesProps) {
     suggested: suggestedPosition,
   });
 
+  /** Put backend field errors (400) under the matching inputs. */
+  const showFieldErrors = (err: unknown) =>
+    getApiFieldErrors(err).forEach(({ field, message }) => {
+      const name = field as keyof CategoryFormType;
+      if (FORM_FIELDS.has(name)) methods.setError(name, { message });
+    });
+
   const onSubmit = (data: CategoryFormType) => {
     if (!editItem) {
-      createCategory({ ...toCreatePayload(data, level, requiresParent) })
+      createCategory({
+        data: toCategoryFormData(toCreatePayload(data, level, requiresParent)),
+        config: MULTIPART_CONFIG,
+      })
         .then(() => {
           toast.success(`${levelLabel} created successfully`);
           methods.reset();
           closeForm();
         })
         .catch((err) => {
+          // usePost does not toast — surface the backend message here.
+          toast.error(
+            getApiErrorMessage(
+              err,
+              `Failed to create ${levelLabel.toLowerCase()}`
+            )
+          );
+          showFieldErrors(err);
           // 404 → selected parent removed / inactive; reload options.
           if (statusOf(err) === 404) {
             methods.setValue("parentId", "");
@@ -196,14 +232,20 @@ export default function CategoriesPage({ level }: CategoriesProps) {
       return;
     }
 
-    updateCategory({ url: categoryEndpoint(editItem.id), data: { ...payload } })
+    updateCategory({
+      url: categoryEndpoint(editItem.id),
+      data: toCategoryFormData(payload),
+      config: MULTIPART_CONFIG,
+    })
       .then(() => {
         toast.success(`${levelLabel} updated successfully`);
         methods.reset();
         closeForm();
       })
       .catch((err) => {
-        // 404 → row or parent gone (usePatch already toasts); 400/409 in form.
+        // usePatch already toasts; mark the offending fields.
+        showFieldErrors(err);
+        // 404 → row or parent gone; 400/409 also shown in form.
         if (statusOf(err) === 404) {
           if (payload.parentId)
             methods.setValue("parentId", editItem.parentId ?? "");
@@ -296,9 +338,7 @@ export default function CategoriesPage({ level }: CategoriesProps) {
           onSubmit={onSubmit}
           onCancel={closeForm}
           levelLabel={levelLabel}
-          parentLabel={
-            parentLevel ? PRODUCT_CLASSIFICATION_LEVEL_LABEL[parentLevel] : null
-          }
+          parentLabel={parentLabel}
           parentOptions={parentOptions}
           isParentsLoading={isParentsLoading}
           suggestedPosition={suggestedPosition}

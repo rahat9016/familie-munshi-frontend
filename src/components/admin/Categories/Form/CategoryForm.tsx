@@ -1,14 +1,16 @@
 import ErrorMessage from "@/src/components/shared/Errors/ErrorMessage";
-import ControlledIconSelectField from "@/src/components/shared/FromController/ControlledIconSelectField";
 import ControlledInputField from "@/src/components/shared/FromController/ControlledInputField";
 import ControlledPositionField from "@/src/components/shared/FromController/ControlledPositionField";
+import ControlledTextareaField from "@/src/components/shared/FromController/ControlledTextareaField";
 import ControlledSearchableSelectField from "@/src/components/shared/FromController/ControlledSearchableSelectField";
+import ControlledToggleField from "@/src/components/shared/FromController/ControlledToggleField";
 import InputLabel from "@/src/components/shared/InputLabel";
 import SubmitButton from "@/src/components/shared/SubmitButton";
 import { Button } from "@/src/components/ui/button";
 import { useFormContext } from "react-hook-form";
 import { CategoryFormType } from "../Schema";
 import { CategoryFormProps } from "../types";
+import CategoryIconField from "./CategoryIconField";
 
 export default function CategoryForm({
   onSubmit,
@@ -40,6 +42,15 @@ export default function CategoryForm({
         />
       </div>
 
+      <div>
+        <InputLabel label="Description" required />
+        <ControlledTextareaField
+          className="bg-light"
+          name="description"
+          placeholder={`Short description of the ${levelLabel.toLowerCase()}`}
+        />
+      </div>
+
       {parentLabel && (
         <div>
           <InputLabel label={parentLabel} required />
@@ -57,18 +68,20 @@ export default function CategoryForm({
         </div>
       )}
 
-      <div>
-        <InputLabel label="Icon" />
-        <ControlledIconSelectField
-          name="icon"
-          placeholder="Select icon (optional)"
-        />
-      </div>
+      <CategoryIconField />
 
       <ControlledPositionField
         suggestedPosition={isEditMode ? undefined : suggestedPosition}
         isLoading={!isEditMode && isPositionLoading}
       />
+
+      <div>
+        <InputLabel label="Status" />
+        <div className="flex items-center gap-3">
+          <ControlledToggleField name="isActive" />
+          <span className="text-sm text-secondary-gary">Active / Inactive</span>
+        </div>
+      </div>
 
       <ErrorMessage error={error} />
 

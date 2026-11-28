@@ -39,8 +39,8 @@ const CategoriesTable = <T,>({
       tabs={[
         { name: "Group", route: "/admin/group" },
         { name: "Parent Category", route: "/admin/parent-category" },
-        { name: "Category", route: "/admin/category" },
         { name: "Segment", route: "/admin/segment" },
+        { name: "Category", route: "/admin/category" },
         { name: "Sub Category", route: "/admin/sub-category" },
       ]}
       IsCreate={showCreateButton}

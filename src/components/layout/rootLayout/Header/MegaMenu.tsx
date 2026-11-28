@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { MegaMenuData } from "./megaMenuData";
 
@@ -45,7 +46,7 @@ export default function MegaMenu({ data, menuKey, onNavigate }: MegaMenuProps) {
                   : "grid grid-flow-col grid-rows-5 gap-x-2 xl:gap-x-4 min-[1024px]:max-[1480px]:gap-x-3"
               }
             >
-              {col.items.map(({ label, href, icon: Icon, highlight }) => (
+              {col.items.map(({ label, href, icon: Icon, iconUrl, highlight }) => (
                 <li key={href} className="">
                   <Link
                     href={href}
@@ -58,11 +59,22 @@ export default function MegaMenu({ data, menuKey, onNavigate }: MegaMenuProps) {
                         : "text-foreground hover:bg-light hover:text-primary"
                     }`}
                   >
-                    <Icon
-                      size={18}
-                      strokeWidth={1.6}
-                      className="shrink-0 transition-transform duration-150 group-hover/i:scale-110"
-                    />
+                    {iconUrl ? (
+                      <Image
+                        src={iconUrl}
+                        alt=""
+                        width={18}
+                        height={18}
+                        unoptimized
+                        className="size-4.5 shrink-0 object-contain transition-transform duration-150 group-hover/i:scale-110"
+                      />
+                    ) : (
+                      <Icon
+                        size={18}
+                        strokeWidth={1.6}
+                        className="shrink-0 transition-transform duration-150 group-hover/i:scale-110"
+                      />
+                    )}
                     <span>{label}</span>
                   </Link>
                 </li>
